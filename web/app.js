@@ -1,11 +1,18 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "ai_workspace_study_v1";
   const DEFAULT_GEM_URL = "https://gemini.google.com/app";
   const CIRCLED = { 1: "①", 2: "②", 3: "③", 4: "④" };
   const DAY_MS = 24 * 60 * 60 * 1000;
   const DOUBLE_ESC_MS = 420;
+  const SUPABASE_SETUP_SQL = `create table if not exists public.study_sync (
+  user_id text primary key,
+  payload jsonb not null,
+  updated_at timestamptz default now()
+);
+alter table public.study_sync enable row level security;
+create policy "Allow anon read/write" on public.study_sync
+  for all using (true) with check (true);`;
 
   const FILTER_LABELS = {
     all: "전체",
@@ -31,12 +38,15 @@
   const DEFAULT_STATE = {
     theme: "dark",
     invertImages: true,
+    alwaysShowAnswer: false,
     gemUrl: "",
     activeSubjectCode: "01_월_감리및사업관리",
     activeTopicCode: null,
     filter: "all",
     sort: "latest",
     sidebarCollapsed: false,
+    lastPosition: null,
+    topicLastQid: {},
     records: {},
     memos: {},
     customAnswers: {},
@@ -44,19 +54,49 @@
   };
 
   let studyData = null;
-  let state = loadState();
+  let currentUser = null;
+  let authMode = "login"; // "login" | "register"
+  let state = normalizeState(null);
   let currentQueue = [];
   let currentIndex = 0;
   let randomSeedKey = "";
   let randomOrderMap = {};
   let perQuestionOriginalColor = {};
+  let peekedQuestions = {};
+  let navigatorOpen = false;
   let stealthActive = false;
   let lightboxQid = null;
   let lastEscTs = 0;
   let toastTimer = null;
   let memoHintTimer = null;
+  let cloudSyncTimer = null;
+  let syncInFlight = false;
 
   const el = {
+    authOverlay: document.getElementById("authOverlay"),
+    savedAccountsWrap: document.getElementById("savedAccountsWrap"),
+    savedAccountsList: document.getElementById("savedAccountsList"),
+    authTabLogin: document.getElementById("authTabLogin"),
+    authTabRegister: document.getElementById("authTabRegister"),
+    authForm: document.getElementById("authForm"),
+    authUsernameInput: document.getElementById("authUsernameInput"),
+    authPasswordInput: document.getElementById("authPasswordInput"),
+    authRememberCheckbox: document.getElementById("authRememberCheckbox"),
+    authErrorMsg: document.getElementById("authErrorMsg"),
+    authSubmitBtn: document.getElementById("authSubmitBtn"),
+    authCloudProvider: document.getElementById("authCloudProvider"),
+    authGistFields: document.getElementById("authGistFields"),
+    authGithubToken: document.getElementById("authGithubToken"),
+    authSupabaseFields: document.getElementById("authSupabaseFields"),
+    authSupabaseUrl: document.getElementById("authSupabaseUrl"),
+    authSupabaseKey: document.getElementById("authSupabaseKey"),
+    userAvatarInitial: document.getElementById("userAvatarInitial"),
+    currentUserName: document.getElementById("currentUserName"),
+    cloudSyncStatus: document.getElementById("cloudSyncStatus"),
+    manualSyncBtn: document.getElementById("manualSyncBtn"),
+    logoutBtn: document.getElementById("logoutBtn"),
+    resumeStudyBtn: document.getElementById("resumeStudyBtn"),
+    resumeStudyDetail: document.getElementById("resumeStudyDetail"),
     appShell: document.getElementById("appShell"),
     sidebar: document.getElementById("sidebar"),
     sidebarBackdrop: document.getElementById("sidebarBackdrop"),
@@ -72,6 +112,7 @@
     filterMenu: document.getElementById("filterMenu"),
     filterOptionsGroup: document.getElementById("filterOptionsGroup"),
     sortOptionsGroup: document.getElementById("sortOptionsGroup"),
+    alwaysShowAnsBtn: document.getElementById("alwaysShowAnsBtn"),
     stealthBtn: document.getElementById("stealthBtn"),
     settingsBtn: document.getElementById("settingsBtn"),
     chatStream: document.getElementById("chatStream"),
@@ -94,43 +135,114 @@
     themeDarkBtn: document.getElementById("themeDarkBtn"),
     themeLightBtn: document.getElementById("themeLightBtn"),
     defaultInvertCheckbox: document.getElementById("defaultInvertCheckbox"),
+    alwaysShowAnsCheckbox: document.getElementById("alwaysShowAnsCheckbox"),
+    cloudProviderSelect: document.getElementById("cloudProviderSelect"),
+    settingsGistFields: document.getElementById("settingsGistFields"),
+    settingsGithubToken: document.getElementById("settingsGithubToken"),
+    settingsSupabaseFields: document.getElementById("settingsSupabaseFields"),
+    settingsSupabaseUrl: document.getElementById("settingsSupabaseUrl"),
+    settingsSupabaseKey: document.getElementById("settingsSupabaseKey"),
+    copySupabaseSqlBtn: document.getElementById("copySupabaseSqlBtn"),
+    saveCloudSyncBtn: document.getElementById("saveCloudSyncBtn"),
+    syncNowBtn: document.getElementById("syncNowBtn"),
     gemUrlInput: document.getElementById("gemUrlInput"),
     saveGemUrlBtn: document.getElementById("saveGemUrlBtn"),
     settingsProgressMeta: document.getElementById("settingsProgressMeta"),
     exportBackupBtn: document.getElementById("exportBackupBtn"),
     importBackupBtn: document.getElementById("importBackupBtn"),
     importAnswersBtn: document.getElementById("importAnswersBtn"),
+    resetTopicBtn: document.getElementById("resetTopicBtn"),
+    resetSubjectBtn: document.getElementById("resetSubjectBtn"),
     resetProgressBtn: document.getElementById("resetProgressBtn"),
     importBackupFile: document.getElementById("importBackupFile"),
     importAnswersFile: document.getElementById("importAnswersFile"),
     toast: document.getElementById("toast"),
   };
 
-  function loadState() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { ...DEFAULT_STATE };
-      const parsed = JSON.parse(raw);
-      return {
-        ...DEFAULT_STATE,
-        ...parsed,
-        records: parsed.records && typeof parsed.records === "object" ? parsed.records : {},
-        memos: parsed.memos && typeof parsed.memos === "object" ? parsed.memos : {},
-        customAnswers:
-          parsed.customAnswers && typeof parsed.customAnswers === "object" ? parsed.customAnswers : {},
-        trendChecked:
-          parsed.trendChecked && typeof parsed.trendChecked === "object" ? parsed.trendChecked : {},
-      };
-    } catch {
-      return { ...DEFAULT_STATE };
+  function normalizeState(parsed) {
+    const src = parsed && typeof parsed === "object" ? parsed : {};
+    return {
+      ...DEFAULT_STATE,
+      ...src,
+      alwaysShowAnswer: Boolean(src.alwaysShowAnswer),
+      lastPosition: src.lastPosition && typeof src.lastPosition === "object" ? src.lastPosition : null,
+      topicLastQid: src.topicLastQid && typeof src.topicLastQid === "object" ? src.topicLastQid : {},
+      records: src.records && typeof src.records === "object" ? src.records : {},
+      memos: src.memos && typeof src.memos === "object" ? src.memos : {},
+      customAnswers: src.customAnswers && typeof src.customAnswers === "object" ? src.customAnswers : {},
+      trendChecked: src.trendChecked && typeof src.trendChecked === "object" ? src.trendChecked : {},
+    };
+  }
+
+  function setSyncStatus(text, isSynced = false) {
+    if (!el.cloudSyncStatus) return;
+    el.cloudSyncStatus.textContent = text;
+    el.cloudSyncStatus.classList.toggle("synced", Boolean(isSynced));
+  }
+
+  function scheduleCloudPush() {
+    if (!currentUser || !window.StudyDB) return;
+    const cfg = window.StudyDB.getCloudConfig(currentUser);
+    if (!cfg || cfg.provider === "none") return;
+    clearTimeout(cloudSyncTimer);
+    setSyncStatus("클라우드 동기화 대기...", false);
+    cloudSyncTimer = setTimeout(async () => {
+      if (syncInFlight || !currentUser) return;
+      syncInFlight = true;
+      setSyncStatus("클라우드 저장 중...", false);
+      try {
+        await window.StudyDB.pushCloud(currentUser, state);
+        const now = new Date();
+        const hm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        setSyncStatus(`클라우드 동기화됨 (${hm})`, true);
+      } catch {
+        setSyncStatus("로컬 저장됨 (클라우드 오류)", false);
+      } finally {
+        syncInFlight = false;
+      }
+    }, 1200);
+  }
+
+  function saveState({ pushCloud = true } = {}) {
+    if (!currentUser || !window.StudyDB) return;
+    state._updatedAt = Date.now();
+    window.StudyDB.saveUserState(currentUser, state).catch(() => {
+      showToast("저장 공간이 부족해 일부 기록을 저장하지 못했습니다.");
+    });
+    if (pushCloud) {
+      scheduleCloudPush();
     }
   }
 
-  function saveState() {
+  async function syncWithCloudNow({ silent = false } = {}) {
+    if (!currentUser || !window.StudyDB) return;
+    const cfg = window.StudyDB.getCloudConfig(currentUser);
+    if (!cfg || cfg.provider === "none") {
+      if (!silent) showToast("클라우드 동기화가 설정되지 않았습니다");
+      return;
+    }
+    if (syncInFlight) return;
+    syncInFlight = true;
+    setSyncStatus("클라우드 동기화 중...", false);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      showToast("저장 공간이 부족해 일부 기록을 저장하지 못했습니다.");
+      const remote = await window.StudyDB.pullCloud(currentUser);
+      if (remote) {
+        state = normalizeState(window.StudyDB.mergeStates(state, remote));
+        await window.StudyDB.saveUserState(currentUser, state);
+      }
+      await window.StudyDB.pushCloud(currentUser, state);
+      const now = new Date();
+      const hm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      setSyncStatus(`클라우드 동기화됨 (${hm})`, true);
+      if (!silent) {
+        renderAll({ rebuildQueue: true, keepCurrentQid: currentQueue[currentIndex]?.id || null });
+        showToast("클라우드 DB 동기화를 완료했습니다");
+      }
+    } catch (err) {
+      setSyncStatus("클라우드 연결 실패", false);
+      if (!silent) showToast(`클라우드 동기화 실패: ${err.message || "설정 확인 필요"}`);
+    } finally {
+      syncInFlight = false;
     }
   }
 
@@ -140,16 +252,32 @@
     return "./" + clean;
   }
 
-  function getEffectiveAnswer(q) {
-    if (!q) return null;
-    if (q.answer != null && Number(q.answer) >= 1 && Number(q.answer) <= 4) {
-      return Number(q.answer);
-    }
+  function getEffectiveAnswers(q) {
+    if (!q) return [];
     const custom = state.customAnswers[q.id];
     if (custom != null && Number(custom) >= 1 && Number(custom) <= 4) {
-      return Number(custom);
+      return [Number(custom)];
     }
-    return null;
+    if (Array.isArray(q.answers) && q.answers.length > 0) {
+      const valid = q.answers.map(Number).filter((n) => n >= 1 && n <= 4);
+      if (valid.length > 0) return Array.from(new Set(valid)).sort((a, b) => a - b);
+    }
+    if (q.answer != null && Number(q.answer) >= 1 && Number(q.answer) <= 4) {
+      return [Number(q.answer)];
+    }
+    return [];
+  }
+
+  function getEffectiveAnswer(q) {
+    const list = getEffectiveAnswers(q);
+    return list.length > 0 ? list[0] : null;
+  }
+
+  function formatAnswersLabel(ansList) {
+    if (!ansList || ansList.length === 0) return "미등록";
+    if (ansList.length === 4) return "①~④ (전원정답)";
+    const joined = ansList.map((n) => CIRCLED[n]).join(", ");
+    return ansList.length > 1 ? `${joined} (복수정답)` : joined;
   }
 
   function endOfTodayMs() {
@@ -189,6 +317,24 @@
     };
   }
 
+  function recordCurrentPosition(q) {
+    const subj = getActiveSubject();
+    const topic = getActiveTopic();
+    if (!subj || !topic || topic.is_trend || !q) return;
+    state.topicLastQid[topic.topic_code] = q.id;
+    state.lastPosition = {
+      subjectCode: subj.subject_code,
+      topicCode: topic.topic_code,
+      topicName: topic.topic,
+      questionId: q.id,
+      yearRound: q.year_round,
+      number: q.number,
+      queueIndex: currentIndex + 1,
+      queueTotal: currentQueue.length,
+      updatedAt: Date.now(),
+    };
+  }
+
   function applyRecordUpdate(q, { selected, selfResult, toggleUncertain }) {
     const prev = state.records[q.id] || {
       selected: null,
@@ -201,13 +347,13 @@
 
     const nextSelected = selected !== undefined ? selected : prev.selected;
     const nextUncertain = toggleUncertain ? !prev.uncertain : prev.uncertain;
-    const effAns = getEffectiveAnswer(q);
+    const effAnsList = getEffectiveAnswers(q);
 
     let nextResult = prev.result;
     if (nextSelected == null) {
       nextResult = "ungraded";
-    } else if (effAns !== null) {
-      nextResult = nextSelected === effAns ? "correct" : "wrong";
+    } else if (effAnsList.length > 0) {
+      nextResult = effAnsList.includes(nextSelected) ? "correct" : "wrong";
     } else if (selfResult !== undefined) {
       nextResult = selfResult;
     } else if (selected !== undefined && selected !== prev.selected) {
@@ -224,6 +370,7 @@
       reviewStage: sched.reviewStage,
       nextReviewAt: sched.nextReviewAt,
     };
+    recordCurrentPosition(q);
     saveState();
   }
 
@@ -295,8 +442,9 @@
     }
 
     currentQueue = base;
-    if (keepCurrentQid) {
-      const foundIdx = currentQueue.findIndex((q) => q.id === keepCurrentQid);
+    const targetQid = keepCurrentQid || (state.filter === "all" ? state.topicLastQid[topic.topic_code] : null);
+    if (targetQid) {
+      const foundIdx = currentQueue.findIndex((q) => q.id === targetQid);
       if (foundIdx >= 0) {
         currentIndex = foundIdx;
         return;
@@ -331,6 +479,13 @@
     el.themeDarkBtn.classList.toggle("active", state.theme !== "light");
     el.themeLightBtn.classList.toggle("active", state.theme === "light");
     el.defaultInvertCheckbox.checked = Boolean(state.invertImages);
+    if (el.alwaysShowAnsCheckbox) {
+      el.alwaysShowAnsCheckbox.checked = Boolean(state.alwaysShowAnswer);
+    }
+    if (el.alwaysShowAnsBtn) {
+      el.alwaysShowAnsBtn.classList.toggle("active", Boolean(state.alwaysShowAnswer));
+      el.alwaysShowAnsBtn.setAttribute("aria-pressed", String(Boolean(state.alwaysShowAnswer)));
+    }
   }
 
   function applySidebarCollapse() {
@@ -725,20 +880,51 @@
     return ` · ${diffDays}일 후 복습 예정`;
   }
 
+  function renderUserProfileBar() {
+    if (!el.currentUserName) return;
+    const uname = currentUser || "로컬 사용자";
+    el.currentUserName.textContent = uname;
+    el.userAvatarInitial.textContent = uname.slice(0, 1).toUpperCase();
+
+    if (currentUser && window.StudyDB) {
+      const cfg = window.StudyDB.getCloudConfig(currentUser);
+      const hasCloud = cfg && cfg.provider && cfg.provider !== "none";
+      if (el.manualSyncBtn) el.manualSyncBtn.classList.toggle("hidden", !hasCloud);
+      if (!hasCloud) {
+        setSyncStatus("로컬 DB 저장 중", false);
+      }
+    }
+
+    if (el.resumeStudyBtn && el.resumeStudyDetail) {
+      const lp = state.lastPosition;
+      if (lp && lp.subjectCode && lp.topicCode && lp.questionId) {
+        const subjMeta = DAY_SHORT[lp.subjectCode];
+        const subjLabel = subjMeta ? subjMeta.name : lp.subjectCode;
+        const idxLabel =
+          lp.queueIndex && lp.queueTotal ? ` (${lp.queueIndex}/${lp.queueTotal})` : "";
+        el.resumeStudyDetail.textContent = `${subjLabel} · ${lp.yearRound || ""} ${lp.number || ""}번${idxLabel}`;
+        el.resumeStudyBtn.classList.remove("hidden");
+      } else {
+        el.resumeStudyBtn.classList.add("hidden");
+      }
+    }
+  }
+
   function renderAiResponseBlock(subj, topic, q, rec) {
-    const effAns = getEffectiveAnswer(q);
+    const effAnsList = getEffectiveAnswers(q);
+    const effAnsLabel = formatAnswersLabel(effAnsList);
     const sel = rec.selected;
     const isUncertain = Boolean(rec.uncertain);
 
     let verdictClass = "";
     let verdictText = `선택 ${CIRCLED[sel]}`;
-    if (effAns !== null) {
+    if (effAnsList.length > 0) {
       if (rec.result === "correct") {
         verdictClass = "ok";
-        verdictText = `정답입니다 · 선택 ${CIRCLED[sel]} (정답 ${CIRCLED[effAns]})`;
+        verdictText = `정답입니다 · 선택 ${CIRCLED[sel]} (정답 ${effAnsLabel})`;
       } else {
         verdictClass = "warn";
-        verdictText = `오답입니다 · 선택 ${CIRCLED[sel]} / 정답 ${CIRCLED[effAns]}`;
+        verdictText = `오답입니다 · 선택 ${CIRCLED[sel]} / 정답 ${effAnsLabel}`;
       }
     } else if (rec.result === "correct") {
       verdictClass = "ok";
@@ -753,9 +939,10 @@
     if (isUncertain) verdictText += " · 불확실";
     verdictText += formatReviewHint(rec);
 
-    // Self-grade & quick custom-answer controls when official answer is missing (or overrideable)
+    // Self-grade & quick custom-answer controls when official answer is missing
     let selfGradeHtml = "";
-    if (q.answer == null) {
+    if (q.answer == null && (!Array.isArray(q.answers) || q.answers.length === 0)) {
+      const effAns = effAnsList[0] ?? null;
       const okActive = rec.result === "correct" && effAns == null ? "active-ok" : "";
       const warnActive = rec.result === "wrong" && effAns == null ? "active-warn" : "";
       const ansBtns = [1, 2, 3, 4]
@@ -959,9 +1146,65 @@
 
     const q = currentQueue[currentIndex];
     const rec = state.records[q.id] || null;
-    const effAns = getEffectiveAnswer(q);
+    const effAnsList = getEffectiveAnswers(q);
+    const effAnsLabel = formatAnswersLabel(effAnsList);
+    const isAnswered = Boolean(rec && rec.selected != null);
+    const isPeeked = Boolean(peekedQuestions[q.id]);
+    const revealAnswer = isAnswered || Boolean(state.alwaysShowAnswer) || isPeeked;
     const hasImg = Boolean(q.has_image && q.image_path);
     const useInverted = state.theme !== "light" && state.invertImages && !perQuestionOriginalColor[q.id];
+
+    // Topic progress stats
+    let topicSolved = 0;
+    let topicCorrect = 0;
+    let topicGraded = 0;
+    topic.gamrisa_questions.forEach((item) => {
+      const r = state.records[item.id];
+      if (r && r.selected != null) {
+        topicSolved += 1;
+        if (r.result === "correct" || r.result === "wrong") {
+          topicGraded += 1;
+          if (r.result === "correct") topicCorrect += 1;
+        }
+      }
+    });
+    const progressPct =
+      topic.gamrisa_count > 0 ? Math.round((topicSolved / topic.gamrisa_count) * 100) : 0;
+    const accLabel =
+      topicGraded > 0 ? ` · 정답률 ${Math.round((topicCorrect / topicGraded) * 100)}%` : "";
+
+    // Question number navigator grid (collapsible)
+    const navCellsHtml = navigatorOpen
+      ? currentQueue
+          .map((item, idx) => {
+            const r = state.records[item.id];
+            let cls = "";
+            if (r && r.selected != null) {
+              if (r.result === "correct") cls = "st-correct";
+              else if (r.result === "wrong") cls = "st-wrong";
+              else if (r.uncertain) cls = "st-uncertain";
+            }
+            if (idx === currentIndex) cls += " is-current";
+            return `<button class="q-nav-cell ${cls}" type="button" data-jump-idx="${idx}" title="${escapeHtml(item.year_round)} ${item.number}번">${idx + 1}</button>`;
+          })
+          .join("")
+      : "";
+
+    const navigatorHtml = navigatorOpen
+      ? `
+        <div id="qNavigatorPanel" class="q-navigator-panel">
+          <div class="q-navigator-header">
+            <span>문항 번호 이동 (${currentQueue.length}문항)</span>
+            <span class="q-navigator-legend">
+              <span><i class="legend-dot ok"></i>정답</span>
+              <span><i class="legend-dot warn"></i>오답</span>
+              <span><i class="legend-dot idle"></i>미풀이</span>
+            </span>
+          </div>
+          <div class="q-navigator-grid">${navCellsHtml}</div>
+        </div>
+      `
+      : "";
 
     const questionContentHtml = hasImg
       ? `
@@ -984,11 +1227,19 @@
     const optionsHtml = [1, 2, 3, 4]
       .map((n) => {
         const selected = rec && rec.selected === n;
+        const isCorrectOpt = effAnsList.includes(n);
         let stateCls = selected ? "selected" : "";
-        if (rec && rec.selected != null) {
-          if (effAns !== null) {
-            if (n === effAns) stateCls += " is-correct";
-            else if (selected && n !== effAns) stateCls += " is-wrong";
+        let badgeHtml = "";
+
+        if (revealAnswer) {
+          if (effAnsList.length > 0) {
+            if (isCorrectOpt) {
+              stateCls += " is-correct";
+              badgeHtml = `<span class="option-badge ok">정답</span>`;
+            } else if (selected) {
+              stateCls += " is-wrong";
+              badgeHtml = `<span class="option-badge warn">내 선택</span>`;
+            }
           } else if (selected && rec.result === "correct") {
             stateCls += " is-correct";
           } else if (selected && rec.result === "wrong") {
@@ -1000,13 +1251,33 @@
           <button class="option-chip ${stateCls}" type="button" data-option="${n}">
             <span class="option-num">${CIRCLED[n]}</span>
             ${hasImg ? "" : `<span class="option-text">${escapeHtml(optText)}</span>`}
+            ${badgeHtml}
           </button>
         `;
       })
       .join("");
 
-    const aiResponseHtml =
-      rec && rec.selected != null ? renderAiResponseBlock(subj, topic, q, rec) : "";
+    // Inline answer banner when user peeks or has Always-Show-Answer enabled before selecting
+    let answerPreviewHtml = "";
+    if (!isAnswered && revealAnswer && effAnsList.length > 0) {
+      answerPreviewHtml = `
+        <div class="answer-preview-banner">
+          <span>공식 정답: ${escapeHtml(effAnsLabel)}</span>
+          <span style="font-size:11.5px;font-weight:400;opacity:0.85;">보기를 누르면 풀이 기록에 저장됩니다</span>
+        </div>
+      `;
+    }
+
+    const aiResponseHtml = isAnswered ? renderAiResponseBlock(subj, topic, q, rec) : "";
+
+    const peekBtnHtml =
+      !isAnswered && !state.alwaysShowAnswer && effAnsList.length > 0
+        ? `<button id="peekAnswerBtn" class="peek-ans-btn ${isPeeked ? "active" : ""}" type="button" title="정답 미리 보기 (A)">${isPeeked ? `정답 ${escapeHtml(effAnsLabel)}` : "정답 보기"}</button>`
+        : "";
+
+    const resetQBtnHtml = isAnswered
+      ? `<button id="resetSingleQBtn" class="reset-q-btn" type="button" title="이 문제 풀이 기록 지우기">다시 풀기</button>`
+      : "";
 
     el.streamInner.innerHTML = `
       <div class="stream-context-bar">
@@ -1015,10 +1286,19 @@
         </span>
         <div class="nav-pair">
           <button id="prevQBtn" class="nav-mini-btn" type="button" ${currentIndex === 0 ? "disabled" : ""} aria-label="이전 문제" title="이전 문제 (←)">‹</button>
-          <span class="nav-counter">${currentIndex + 1} / ${currentQueue.length}</span>
+          <button id="qNavToggleBtn" class="nav-counter-btn" type="button" title="문항 번호 목록 열기/닫기">${currentIndex + 1} / ${currentQueue.length} ▾</button>
           <button id="nextQBtn" class="nav-mini-btn" type="button" ${currentIndex >= currentQueue.length - 1 ? "disabled" : ""} aria-label="다음 문제" title="다음 문제 (→)">›</button>
         </div>
       </div>
+
+      <div class="topic-progress-strip">
+        <div class="topic-progress-track">
+          <div class="topic-progress-fill" style="width:${progressPct}%"></div>
+        </div>
+        <span class="topic-progress-label">풀이 ${topicSolved}/${topic.gamrisa_count} (${progressPct}%)${accLabel}</span>
+      </div>
+
+      ${navigatorHtml}
 
       <section class="question-card" aria-label="문제 본문">
         <div class="question-meta-row">
@@ -1027,7 +1307,11 @@
             <span>·</span>
             <span>${escapeHtml(q.topic_code)}</span>
           </span>
-          ${rec && rec.uncertain ? `<span class="question-flag-pill">불확실</span>` : ""}
+          <div class="question-meta-actions">
+            ${rec && rec.uncertain ? `<span class="question-flag-pill">불확실</span>` : ""}
+            ${peekBtnHtml}
+            ${resetQBtnHtml}
+          </div>
         </div>
         ${questionContentHtml}
       </section>
@@ -1036,6 +1320,7 @@
         ${optionsHtml}
       </section>
 
+      ${answerPreviewHtml}
       ${aiResponseHtml}
     `;
 
@@ -1045,6 +1330,7 @@
   function renderAll({ rebuildQueue = false, keepCurrentQid = null } = {}) {
     applyTheme();
     applySidebarCollapse();
+    renderUserProfileBar();
     renderSubjectTabs();
     renderTopicList();
     renderSidebarFooterStats();
@@ -1062,18 +1348,33 @@
     const subj = getActiveSubject();
     state.activeTopicCode = subj.topics[0] ? subj.topics[0].topic_code : null;
     currentIndex = 0;
+    navigatorOpen = false;
     saveState();
     renderAll({ rebuildQueue: true });
     el.chatStream.scrollTop = 0;
   }
 
-  function selectTopic(topicCode) {
+  function selectTopic(topicCode, targetQid = null) {
     state.activeTopicCode = topicCode;
     currentIndex = 0;
+    navigatorOpen = false;
     saveState();
-    renderAll({ rebuildQueue: true });
+    renderAll({ rebuildQueue: true, keepCurrentQid: targetQid });
     el.chatStream.scrollTop = 0;
     if (isMobileViewport()) setMobileSidebarOpen(false);
+  }
+
+  function jumpToQuestionIndex(idx) {
+    if (idx < 0 || idx >= currentQueue.length) return;
+    currentIndex = idx;
+    const q = currentQueue[currentIndex];
+    if (q) {
+      recordCurrentPosition(q);
+      saveState();
+      renderUserProfileBar();
+    }
+    renderMainStream();
+    el.chatStream.scrollTop = 0;
   }
 
   function goNextQuestion() {
@@ -1087,9 +1388,7 @@
     }
     if (currentQueue.length === 0) return;
     if (currentIndex < currentQueue.length - 1) {
-      currentIndex += 1;
-      renderMainStream();
-      el.chatStream.scrollTop = 0;
+      jumpToQuestionIndex(currentIndex + 1);
     } else {
       showToast("현재 토픽의 마지막 문항입니다");
     }
@@ -1097,10 +1396,24 @@
 
   function goPrevQuestion() {
     if (currentIndex > 0) {
-      currentIndex -= 1;
-      renderMainStream();
-      el.chatStream.scrollTop = 0;
+      jumpToQuestionIndex(currentIndex - 1);
     }
+  }
+
+  function resumeLastPosition() {
+    const lp = state.lastPosition;
+    if (!lp || !lp.subjectCode || !lp.topicCode) {
+      showToast("저장된 최근 학습 위치가 없습니다");
+      return;
+    }
+    state.activeSubjectCode = lp.subjectCode;
+    state.activeTopicCode = lp.topicCode;
+    state.filter = "all";
+    saveState();
+    renderAll({ rebuildQueue: true, keepCurrentQid: lp.questionId || null });
+    el.chatStream.scrollTop = 0;
+    if (isMobileViewport()) setMobileSidebarOpen(false);
+    showToast(`이어서 풀기: ${lp.yearRound || ""} ${lp.number || ""}번`);
   }
 
   function toggleStealth(force) {
@@ -1127,12 +1440,27 @@
     el.lightboxImg.src = "";
   }
 
+  function updateSettingsCloudFields(provider) {
+    if (el.settingsGistFields) el.settingsGistFields.classList.toggle("hidden", provider !== "gist");
+    if (el.settingsSupabaseFields) el.settingsSupabaseFields.classList.toggle("hidden", provider !== "supabase");
+  }
+
   function openSettings() {
     el.gemUrlInput.value = state.gemUrl || "";
     const solved = Object.values(state.records).filter((r) => r && r.selected != null).length;
+    const correct = Object.values(state.records).filter((r) => r && r.result === "correct").length;
     const wrong = Object.values(state.records).filter((r) => r && r.result === "wrong").length;
-    const customAns = Object.keys(state.customAnswers).length;
-    el.settingsProgressMeta.textContent = `현재 기록: 풀이 ${solved}건 · 오답 ${wrong}건 · 직접 등록 정답 ${customAns}건`;
+    el.settingsProgressMeta.textContent = `계정(${currentUser || "-"}) 기록: 풀이 ${solved}/${studyData?.meta?.gamrisa_total || 1560}건 · 정답 ${correct}건 · 오답 ${wrong}건`;
+
+    if (currentUser && window.StudyDB && el.cloudProviderSelect) {
+      const cfg = window.StudyDB.getCloudConfig(currentUser);
+      el.cloudProviderSelect.value = cfg.provider || "none";
+      if (el.settingsGithubToken) el.settingsGithubToken.value = cfg.githubToken || "";
+      if (el.settingsSupabaseUrl) el.settingsSupabaseUrl.value = cfg.supabaseUrl || "";
+      if (el.settingsSupabaseKey) el.settingsSupabaseKey.value = cfg.supabaseKey || "";
+      updateSettingsCloudFields(cfg.provider || "none");
+    }
+
     el.settingsModal.classList.remove("hidden");
   }
 
@@ -1247,6 +1575,39 @@
         goNextQuestion();
         return;
       }
+      if (e.target.closest("#qNavToggleBtn")) {
+        navigatorOpen = !navigatorOpen;
+        renderMainStream();
+        return;
+      }
+      const jumpIdxBtn = e.target.closest("[data-jump-idx]");
+      if (jumpIdxBtn) {
+        const idx = Number(jumpIdxBtn.dataset.jumpIdx);
+        navigatorOpen = false;
+        jumpToQuestionIndex(idx);
+        return;
+      }
+
+      // Peek answer toggle (before selecting)
+      if (e.target.closest("#peekAnswerBtn") && q) {
+        peekedQuestions[q.id] = !peekedQuestions[q.id];
+        renderMainStream();
+        return;
+      }
+
+      // Reset single question record
+      if (e.target.closest("#resetSingleQBtn") && q) {
+        delete state.records[q.id];
+        delete peekedQuestions[q.id];
+        saveState();
+        renderSubjectTabs();
+        renderTopicList();
+        renderSidebarFooterStats();
+        renderFilterDropdown();
+        renderMainStream();
+        showToast("이 문제의 풀이 기록을 초기화했습니다");
+        return;
+      }
 
       // Image color toggle
       if (e.target.closest("#toggleImgColorBtn") && q) {
@@ -1266,6 +1627,7 @@
       if (optBtn && q) {
         const chosen = Number(optBtn.dataset.option);
         applyRecordUpdate(q, { selected: chosen });
+        renderUserProfileBar();
         renderSubjectTabs();
         renderTopicList();
         renderSidebarFooterStats();
@@ -1344,6 +1706,112 @@
         return;
       }
     });
+
+    // Always-show-answer toggle (Top bar & Settings)
+    if (el.alwaysShowAnsBtn) {
+      el.alwaysShowAnsBtn.addEventListener("click", () => {
+        state.alwaysShowAnswer = !state.alwaysShowAnswer;
+        saveState();
+        applyTheme();
+        renderMainStream();
+        showToast(state.alwaysShowAnswer ? "항상 정답 표시 (암기 모드) 켜짐" : "정답 숨김 (실전 풀이 모드)");
+      });
+    }
+    if (el.alwaysShowAnsCheckbox) {
+      el.alwaysShowAnsCheckbox.addEventListener("change", () => {
+        state.alwaysShowAnswer = el.alwaysShowAnsCheckbox.checked;
+        saveState();
+        applyTheme();
+        renderMainStream();
+      });
+    }
+
+    // Sidebar Profile: Resume / Sync / Switch Account
+    if (el.resumeStudyBtn) {
+      el.resumeStudyBtn.addEventListener("click", resumeLastPosition);
+    }
+    if (el.manualSyncBtn) {
+      el.manualSyncBtn.addEventListener("click", () => syncWithCloudNow({ silent: false }));
+    }
+    if (el.logoutBtn) {
+      el.logoutBtn.addEventListener("click", () => {
+        window.StudyDB.setSavedSession(null, false);
+        currentUser = null;
+        showAuthOverlay();
+      });
+    }
+
+    // Auth Overlay Controls
+    if (el.authTabLogin) {
+      el.authTabLogin.addEventListener("click", () => setAuthMode("login"));
+    }
+    if (el.authTabRegister) {
+      el.authTabRegister.addEventListener("click", () => setAuthMode("register"));
+    }
+    if (el.authCloudProvider) {
+      el.authCloudProvider.addEventListener("change", () => {
+        const p = el.authCloudProvider.value;
+        el.authGistFields.classList.toggle("hidden", p !== "gist");
+        el.authSupabaseFields.classList.toggle("hidden", p !== "supabase");
+      });
+    }
+    if (el.savedAccountsList) {
+      el.savedAccountsList.addEventListener("click", async (e) => {
+        const btn = e.target.closest("[data-quick-user]");
+        if (!btn) return;
+        const uname = btn.dataset.quickUser;
+        const acc = await window.StudyDB.getAccount(uname);
+        if (acc && !acc.hasPassword) {
+          await completeSignIn(uname, el.authRememberCheckbox?.checked ?? true);
+        } else {
+          setAuthMode("login");
+          el.authUsernameInput.value = uname;
+          el.authPasswordInput.focus();
+        }
+      });
+    }
+    if (el.authForm) {
+      el.authForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        el.authErrorMsg.classList.add("hidden");
+        const uname = (el.authUsernameInput.value || "").trim();
+        const pw = el.authPasswordInput.value || "";
+        const remember = Boolean(el.authRememberCheckbox?.checked);
+
+        const res =
+          authMode === "register"
+            ? await window.StudyDB.registerAccount(uname, pw)
+            : await window.StudyDB.loginAccount(uname, pw);
+
+        if (!res.ok) {
+          el.authErrorMsg.textContent = res.error || "로그인에 실패했습니다.";
+          el.authErrorMsg.classList.remove("hidden");
+          return;
+        }
+
+        // Save optional cloud sync config if provided on login screen
+        const prov = el.authCloudProvider?.value || "none";
+        if (prov === "gist" && el.authGithubToken?.value.trim()) {
+          window.StudyDB.saveCloudConfig(uname, {
+            provider: "gist",
+            githubToken: el.authGithubToken.value.trim(),
+          });
+        } else if (
+          prov === "supabase" &&
+          el.authSupabaseUrl?.value.trim() &&
+          el.authSupabaseKey?.value.trim()
+        ) {
+          window.StudyDB.saveCloudConfig(uname, {
+            provider: "supabase",
+            supabaseUrl: el.authSupabaseUrl.value.trim(),
+            supabaseKey: el.authSupabaseKey.value.trim(),
+            supabaseTable: "study_sync",
+          });
+        }
+
+        await completeSignIn(uname, remember);
+      });
+    }
 
     // Bottom Composer (Memo auto-save + Uncertain + Next)
     el.memoInput.addEventListener("input", () => {
@@ -1446,6 +1914,52 @@
       renderMainStream();
     });
 
+    // Cloud Sync Settings
+    if (el.cloudProviderSelect) {
+      el.cloudProviderSelect.addEventListener("change", () => {
+        updateSettingsCloudFields(el.cloudProviderSelect.value);
+      });
+    }
+    if (el.copySupabaseSqlBtn) {
+      el.copySupabaseSqlBtn.addEventListener("click", () => {
+        copyTextWithFallback(SUPABASE_SETUP_SQL);
+        showToast("Supabase 테이블 생성 SQL을 복사했습니다");
+      });
+    }
+    if (el.saveCloudSyncBtn) {
+      el.saveCloudSyncBtn.addEventListener("click", async () => {
+        if (!currentUser || !window.StudyDB) return;
+        const provider = el.cloudProviderSelect.value;
+        const existing = window.StudyDB.getCloudConfig(currentUser);
+        const cfg = { ...existing, provider };
+        if (provider === "gist") {
+          cfg.githubToken = (el.settingsGithubToken.value || "").trim();
+          if (!cfg.githubToken) {
+            showToast("GitHub Personal Access Token을 입력하세요");
+            return;
+          }
+        } else if (provider === "supabase") {
+          cfg.supabaseUrl = (el.settingsSupabaseUrl.value || "").trim();
+          cfg.supabaseKey = (el.settingsSupabaseKey.value || "").trim();
+          cfg.supabaseTable = "study_sync";
+          if (!cfg.supabaseUrl || !cfg.supabaseKey) {
+            showToast("Supabase URL과 Anon Key를 모두 입력하세요");
+            return;
+          }
+        }
+        window.StudyDB.saveCloudConfig(currentUser, cfg);
+        renderUserProfileBar();
+        if (provider !== "none") {
+          await syncWithCloudNow({ silent: false });
+        } else {
+          showToast("로컬 DB 단독 모드로 변경했습니다");
+        }
+      });
+    }
+    if (el.syncNowBtn) {
+      el.syncNowBtn.addEventListener("click", () => syncWithCloudNow({ silent: false }));
+    }
+
     el.saveGemUrlBtn.addEventListener("click", () => {
       const val = el.gemUrlInput.value.trim();
       if (val && !/^https?:\/\//i.test(val)) {
@@ -1461,12 +1975,16 @@
     el.exportBackupBtn.addEventListener("click", () => {
       const payload = {
         app: "AI Workspace Study",
-        version: 1,
+        version: 2,
+        user: currentUser,
         exportedAt: new Date().toISOString(),
         data: {
           theme: state.theme,
           invertImages: state.invertImages,
+          alwaysShowAnswer: state.alwaysShowAnswer,
           gemUrl: state.gemUrl,
+          lastPosition: state.lastPosition,
+          topicLastQid: state.topicLastQid,
           records: state.records,
           memos: state.memos,
           customAnswers: state.customAnswers,
@@ -1475,7 +1993,7 @@
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const dateStr = new Date().toISOString().slice(0, 10);
-      downloadBlob(blob, `ai_workspace_backup_${dateStr}.json`);
+      downloadBlob(blob, `ai_workspace_backup_${currentUser || "local"}_${dateStr}.json`);
       showToast("학습기록 백업 JSON을 저장했습니다");
     });
 
@@ -1495,8 +2013,11 @@
         state.memos = src.memos || {};
         state.customAnswers = src.customAnswers || {};
         state.trendChecked = src.trendChecked || {};
+        if (src.lastPosition) state.lastPosition = src.lastPosition;
+        if (src.topicLastQid) state.topicLastQid = src.topicLastQid;
         if (src.theme === "dark" || src.theme === "light") state.theme = src.theme;
         if (typeof src.invertImages === "boolean") state.invertImages = src.invertImages;
+        if (typeof src.alwaysShowAnswer === "boolean") state.alwaysShowAnswer = src.alwaysShowAnswer;
         if (typeof src.gemUrl === "string") state.gemUrl = src.gemUrl;
         saveState();
         renderAll({ rebuildQueue: true });
@@ -1534,7 +2055,6 @@
           });
         }
         if (count === 0) throw new Error("Empty");
-        // Re-evaluate existing records against imported answers
         const byId = {};
         studyData.subjects.forEach((s) =>
           s.topics.forEach((t) =>
@@ -1557,25 +2077,80 @@
       }
     });
 
+    // Reset current topic
+    if (el.resetTopicBtn) {
+      el.resetTopicBtn.addEventListener("click", () => {
+        const topic = getActiveTopic();
+        if (!topic) return;
+        if (!window.confirm(`현재 토픽 [${topic.topic}]의 풀이 기록을 모두 날릴까요?`)) return;
+        topic.gamrisa_questions.forEach((q) => {
+          delete state.records[q.id];
+          delete peekedQuestions[q.id];
+        });
+        delete state.topicLastQid[topic.topic_code];
+        if (state.lastPosition?.topicCode === topic.topic_code) {
+          state.lastPosition = null;
+        }
+        saveState();
+        currentIndex = 0;
+        renderAll({ rebuildQueue: true });
+        openSettings();
+        showToast(`[${topic.topic}] 풀이 기록을 초기화했습니다`);
+      });
+    }
+
+    // Reset current subject
+    if (el.resetSubjectBtn) {
+      el.resetSubjectBtn.addEventListener("click", () => {
+        const subj = getActiveSubject();
+        if (!subj) return;
+        if (!window.confirm(`현재 과목 [${subj.display_name}]의 풀이 기록을 모두 날릴까요?`)) return;
+        subj.topics.forEach((t) => {
+          t.gamrisa_questions.forEach((q) => {
+            delete state.records[q.id];
+            delete peekedQuestions[q.id];
+          });
+          delete state.topicLastQid[t.topic_code];
+        });
+        if (state.lastPosition?.subjectCode === subj.subject_code) {
+          state.lastPosition = null;
+        }
+        saveState();
+        currentIndex = 0;
+        renderAll({ rebuildQueue: true });
+        openSettings();
+        showToast(`[${subj.display_name}] 풀이 기록을 초기화했습니다`);
+      });
+    }
+
     // Reset all progress
     el.resetProgressBtn.addEventListener("click", () => {
-      if (!window.confirm("모든 풀이 기록, 오답, 불확실 표시, 메모, 등록 정답을 초기화할까요?")) {
+      if (
+        !window.confirm(
+          `[${currentUser || "현재 계정"}]의 모든 풀이 기록, 오답, 불확실 표시, 메모, 진도 위치를 완전히 날릴까요?`
+        )
+      ) {
         return;
       }
       state.records = {};
       state.memos = {};
       state.customAnswers = {};
       state.trendChecked = {};
+      state.lastPosition = null;
+      state.topicLastQid = {};
+      peekedQuestions = {};
+      currentIndex = 0;
       saveState();
       renderAll({ rebuildQueue: true });
       openSettings();
-      showToast("모든 학습 기록을 초기화했습니다");
+      showToast("모든 공부 기록을 초기화했습니다");
     });
 
     // Keyboard Shortcuts
     document.addEventListener("keydown", (e) => {
+      if (!el.authOverlay.classList.contains("hidden")) return;
+
       if (e.key === "Escape") {
-        // Close top-most modal first with single Esc
         if (!el.lightboxModal.classList.contains("hidden")) {
           closeLightbox();
           lastEscTs = 0;
@@ -1607,7 +2182,7 @@
       if (!el.settingsModal.classList.contains("hidden")) return;
 
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
       const topic = getActiveTopic();
       if (!topic || topic.is_trend || currentQueue.length === 0) return;
@@ -1617,10 +2192,18 @@
         if (q) {
           e.preventDefault();
           applyRecordUpdate(q, { selected: Number(e.key) });
+          renderUserProfileBar();
           renderSubjectTabs();
           renderTopicList();
           renderSidebarFooterStats();
           renderFilterDropdown();
+          renderMainStream();
+        }
+      } else if (e.key === "a" || e.key === "A") {
+        const q = currentQueue[currentIndex];
+        if (q) {
+          e.preventDefault();
+          peekedQuestions[q.id] = !peekedQuestions[q.id];
           renderMainStream();
         }
       } else if (e.key === "Enter") {
@@ -1636,6 +2219,96 @@
     });
   }
 
+  // Auth Flow
+  function setAuthMode(mode) {
+    authMode = mode === "register" ? "register" : "login";
+    el.authTabLogin.classList.toggle("active", authMode === "login");
+    el.authTabRegister.classList.toggle("active", authMode === "register");
+    el.authTabLogin.setAttribute("aria-selected", String(authMode === "login"));
+    el.authTabRegister.setAttribute("aria-selected", String(authMode === "register"));
+    el.authSubmitBtn.textContent =
+      authMode === "register" ? "계정 만들고 공부 시작하기" : "로그인하고 이어서 공부하기";
+    el.authErrorMsg.classList.add("hidden");
+  }
+
+  async function showAuthOverlay() {
+    const accounts = await window.StudyDB.listAccounts();
+    if (accounts.length > 0) {
+      const summaries = await Promise.all(
+        accounts.map(async (acc) => ({
+          acc,
+          summary: await window.StudyDB.getAccountSummary(acc.username),
+        }))
+      );
+      el.savedAccountsList.innerHTML = summaries
+        .map(({ acc, summary }) => {
+          const meta = summary.lastLabel
+            ? `${summary.solved}문제 · ${summary.lastLabel}`
+            : `${summary.solved}문제 풀이`;
+          return `
+            <button class="saved-account-chip" type="button" data-quick-user="${escapeHtml(acc.username)}">
+              <span class="saved-account-main">
+                <span class="user-avatar">${escapeHtml(acc.username.slice(0, 1).toUpperCase())}</span>
+                <span class="saved-account-name">${escapeHtml(acc.username)}</span>
+              </span>
+              <span class="saved-account-meta">${escapeHtml(meta)}</span>
+            </button>
+          `;
+        })
+        .join("");
+      el.savedAccountsWrap.classList.remove("hidden");
+      setAuthMode("login");
+    } else {
+      el.savedAccountsWrap.classList.add("hidden");
+      setAuthMode("register");
+    }
+    el.authPasswordInput.value = "";
+    el.authErrorMsg.classList.add("hidden");
+    el.authOverlay.classList.remove("hidden");
+    setTimeout(() => el.authUsernameInput.focus(), 50);
+  }
+
+  async function completeSignIn(username, remember = true) {
+    currentUser = username;
+    window.StudyDB.setSavedSession(username, remember);
+    const loaded = await window.StudyDB.loadUserState(username);
+    state = normalizeState(loaded);
+    peekedQuestions = {};
+    navigatorOpen = false;
+    el.authOverlay.classList.add("hidden");
+
+    // Pull latest from cloud DB if connected
+    const cfg = window.StudyDB.getCloudConfig(username);
+    if (cfg && cfg.provider && cfg.provider !== "none") {
+      await syncWithCloudNow({ silent: true });
+    }
+
+    // Resume exact last studied position if available
+    if (state.lastPosition && state.lastPosition.subjectCode && state.lastPosition.topicCode) {
+      state.activeSubjectCode = state.lastPosition.subjectCode;
+      state.activeTopicCode = state.lastPosition.topicCode;
+    }
+
+    const subj = getActiveSubject();
+    state.activeSubjectCode = subj.subject_code;
+    const topic = getActiveTopic();
+    state.activeTopicCode = topic.topic_code;
+
+    const resumeQid =
+      state.lastPosition && state.lastPosition.topicCode === topic.topic_code
+        ? state.lastPosition.questionId
+        : null;
+
+    renderAll({ rebuildQueue: true, keepCurrentQid: resumeQid });
+    if (state.lastPosition && state.lastPosition.yearRound) {
+      showToast(
+        `${username}님 환영합니다 · ${state.lastPosition.yearRound} ${state.lastPosition.number}번부터 이어서 풀기`
+      );
+    } else {
+      showToast(`${username}님으로 로그인했습니다`);
+    }
+  }
+
   async function init() {
     applyTheme();
     applySidebarCollapse();
@@ -1646,13 +2319,18 @@
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       studyData = await resp.json();
 
-      // Validate active subject & topic
-      const subj = getActiveSubject();
-      state.activeSubjectCode = subj.subject_code;
-      const topic = getActiveTopic();
-      state.activeTopicCode = topic.topic_code;
+      // Check auto-login session
+      const session = window.StudyDB.getSavedSession();
+      if (session && session.username) {
+        const acc = await window.StudyDB.getAccount(session.username);
+        if (acc) {
+          await completeSignIn(acc.username, true);
+          return;
+        }
+      }
 
-      renderAll({ rebuildQueue: true });
+      // Show login screen for account selection / creation
+      await showAuthOverlay();
     } catch (err) {
       el.streamInner.innerHTML = `
         <div class="empty-state">

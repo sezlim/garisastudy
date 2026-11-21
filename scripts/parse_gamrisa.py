@@ -1,4 +1,4 @@
-﻿"""Parse Gamrisa (정보시스템감리사) past exam PDFs and crop figure/table/diagram questions."""
+"""Parse Gamrisa (정보시스템감리사) past exam PDFs and crop figure/table/diagram questions."""
 
 from __future__ import annotations
 
@@ -93,17 +93,38 @@ def detect_mid_x(page: fitz.Page) -> float:
     return w / 2.0
 
 
+def _reconstruct_span_text(span: dict[str, Any]) -> str:
+    """Reconstruct span text from rawdict chars, inserting missing spaces on horizontal gaps."""
+    chars = span.get("chars")
+    if not chars:
+        return span.get("text", "")
+    sz = float(span.get("size", 9.8) or 9.8)
+    # Normal Hangul kerning is <= 0.6pt; missing word spaces in 2025/2026 PDFs are >= 0.20 * sz (~2.0-7.8pt)
+    gap_thresh = max(1.6, sz * 0.20)
+    out: list[str] = []
+    for i, c in enumerate(chars):
+        ch = c.get("c", "")
+        if i > 0:
+            prev = chars[i - 1]
+            prev_ch = prev.get("c", "")
+            gap = c["bbox"][0] - prev["bbox"][2]
+            if gap >= gap_thresh and prev_ch not in (" ", "\xa0") and ch not in (" ", "\xa0"):
+                out.append(" ")
+        out.append(ch)
+    return "".join(out)
+
+
 def extract_column_lines(page: fitz.Page, mid_x: float) -> dict[int, list[dict[str, Any]]]:
     """Cluster text spans into coordinate-sorted visual lines per column (0=left, 1=right)."""
     page_h = page.rect.height
     col_spans: dict[int, list[dict[str, Any]]] = {0: [], 1: []}
-    tdict = page.get_text("dict")
+    tdict = page.get_text("rawdict")
     for block in tdict.get("blocks", []):
         if block.get("type") != 0:
             continue
         for line in block.get("lines", []):
             for span in line.get("spans", []):
-                raw = span.get("text", "")
+                raw = _reconstruct_span_text(span)
                 if not raw.strip():
                     continue
                 x0, y0, x1, y1 = span["bbox"]
@@ -157,7 +178,9 @@ def extract_column_lines(page: fitz.Page, mid_x: float) -> dict[int, list[dict[s
                         parts.append(" ")
                 parts.append(txt)
                 prev_x1 = s["x1"]
-            line_text = "".join(parts).strip()
+            joined_raw = "".join(parts)
+            has_trailing_space = joined_raw.endswith(" ")
+            line_text = joined_raw.strip()
             if not line_text or "편집의도에 따라 비워둔 페이지" in line_text:
                 continue
             result[col].append(
@@ -168,6 +191,7 @@ def extract_column_lines(page: fitz.Page, mid_x: float) -> dict[int, list[dict[s
                     "y1": max(s["y1"] for s in cl),
                     "yc": sum(s["yc"] for s in cl) / len(cl),
                     "text": line_text,
+                    "has_trailing_space": has_trailing_space,
                     "spans": cl,
                 }
             )
@@ -424,6 +448,55 @@ def analyze_segment_visuals(
     return list(dict.fromkeys(reasons))
 
 
+_HANGUL_RE = re.compile(r"[가-힣]")
+
+# Suffixes/particles/endings that almost never start a standalone Korean word after a Hangul wrap
+_ATTACH_NEXT_RE = re.compile(
+    r"^(?:"
+    r"으로|으로서|으로써|으로부터|으로는|으로도|으로의|로부터|"
+    r"에서|에서는|에서도|에서의|에게|에게는|에게도|에는|에도|에의|"
+    r"까지|부터|보다|처럼|만큼|마다|조차|마저|"
+    r"이며|이고|이면|이거나|이나|이지만|이라|라는|라고|라도|이란|이다|입니다|"
+    r"하여|하며|하고|하면|하지|한다|하는|하는지|하는가|하여야|해야|했다|하였다|하게|하기|"
+    r"행하고|행하여|행하는|행한다|행하며|행하여야|행해야|행한|"
+    r"되어|되며|되고|되면|되지|된다|되는|되는지|되어야|됐다|되었다|되게|되기|"
+    r"적인|적으로|적이|적으|"
+    r"들은|들이|들의|들을|들과|들로|들에|"
+    r"사회진흥원|진흥원|정의서|수행가이드|감리기준|시행령|"
+    r"[은는이가을를의에와과도만로](?=$|[\s,.)\]」』’”])"
+    r")"
+)
+
+# Common 1-char standalone Korean words that SHOULD keep a space before the next word
+_STANDALONE_1CHAR = frozenset("수 것 중 등 시 간 내 외 위 각 총 단 두 세 네 매 별 전 후 원 일 월 년 회 개 명 건 팀 법 망 키 값 표 선 점 층 열 행 쌍 항")
+
+
+def _should_join_without_space(prev: str, nxt: str) -> bool:
+    """Return True if prev + nxt is a Korean mid-word wrap rather than a word boundary."""
+    if not prev or not nxt:
+        return False
+    last_ch = prev[-1]
+    first_ch = nxt[0]
+    if not (_HANGUL_RE.match(last_ch) and _HANGUL_RE.match(first_ch)):
+        # Also join if prev ends with closing quote/paren and nxt starts with Korean particle
+        if last_ch in (")", "]", "」", "』", "’", "”", '"', "'") and _ATTACH_NEXT_RE.match(nxt):
+            return True
+        return False
+    # If next line starts with a Korean particle/ending/bound suffix
+    if _ATTACH_NEXT_RE.match(nxt):
+        return True
+    # If prev ends with a 1-char Hangul fragment (e.g. "감리원 활" + "동으로", '"협' + "상에")
+    # that is not a common standalone 1-char noun
+    last_tok = prev.rsplit(" ", 1)[-1].lstrip("\"'‘“「『([<")
+    if len(last_tok) == 1 and last_tok not in _STANDALONE_1CHAR:
+        return True
+    # If prev ends with a 2-char Hangul stem fragment like "적절" + "하지", "확인" + "할", "제출" + "하여야"
+    if nxt.startswith(("할 ", "한 ", "함", "됨", "됨.", "함.", "하였", "되었", "시키", "받는", "받았", "주는", "있다", "없다", "않은", "않는", "않고")):
+        if prev.endswith(("적절", "적정", "확인", "제출", "점검", "수행", "작성", "보관", "적용", "반영", "구현", "충족", "발생", "처리", "제공", "관리", "운영", "구축", "설계", "개발", "분석", "평가", "판정", "산정", "추진", "시행", "규정", "명시", "포함", "제외", "제한", "통제", "차단", "탐지", "복구", "백업", "암호", "인증", "인가", "연계", "통합", "분리", "전환", "이행", "보완", "개선", "변경", "조정", "검토", "협의", "결정", "선정", "배치", "투입", "종료", "완료", "실시", "착수")):
+            return True
+    return False
+
+
 def clean_text_lines(lines: list[str]) -> str:
     """Join wrapped Korean/English lines cleanly while preserving deliberate breaks."""
     if not lines:
@@ -440,8 +513,10 @@ def clean_text_lines(lines: list[str]) -> str:
         # Rejoin hyphenated English word wraps like "Perfor-" + "mance" or "speci-" + "alization"
         if prev.endswith("-") and len(prev) >= 2 and prev[-2].isalpha() and s[0].isalpha():
             out[-1] = prev[:-1] + s
-        elif prev.endswith(("다.", "?", "!", ":", ")", "]")) or s.startswith(("-", "Ÿ", "•", "·", "가.", "나.", "다.", "라.", "마.", "바.", "<")):
+        elif prev.endswith(("다.", "?", "!", ":", "]")) or s.startswith(("-", "Ÿ", "•", "·", "가.", "나.", "다.", "라.", "마.", "바.", "<")):
             out.append(s)
+        elif _should_join_without_space(prev, s):
+            out[-1] = prev + s
         else:
             out[-1] = prev + " " + s
     return "\n".join(out).strip()

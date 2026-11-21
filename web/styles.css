@@ -1495,3 +1495,593 @@ button {
     font-size: 22px;
   }
 }
+
+/* =========================================================
+   Auth / Login Overlay
+   ========================================================= */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: var(--bg-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  padding: 26px 24px 22px;
+  box-shadow: var(--shadow-menu);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.auth-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.auth-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.saved-accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.saved-account-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 11px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  text-align: left;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.saved-account-chip:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-strong);
+}
+
+.saved-account-main {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.saved-account-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.saved-account-meta {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 3px;
+  background: var(--bg-surface);
+  border-radius: 10px;
+}
+
+.auth-tab {
+  min-height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.auth-tab.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.auth-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.auth-optional {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.auth-remember-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.auth-remember-row input {
+  margin-top: 2px;
+}
+
+.auth-error {
+  padding: 8px 11px;
+  border-radius: 9px;
+  background: var(--status-warn-bg);
+  color: var(--status-warn);
+  font-size: 12.5px;
+}
+
+.auth-submit-btn {
+  min-height: 44px;
+  border-radius: 11px;
+  background: var(--accent-btn);
+  color: var(--accent-btn-text);
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity 0.15s ease;
+}
+
+.auth-submit-btn:hover {
+  opacity: 0.9;
+}
+
+.auth-cloud-details {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.auth-cloud-details summary {
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+}
+
+.auth-cloud-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cloud-subfields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* =========================================================
+   Sidebar User Profile & Resume Card
+   ========================================================= */
+.user-profile-bar {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sync-status-text {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.sync-status-text.synced {
+  color: var(--status-ok);
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.mini-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+}
+
+.mini-icon-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.mini-text-btn {
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+}
+
+.mini-text-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.resume-study-btn {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--status-ok-bg);
+  border: 1px solid rgba(143, 168, 153, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  transition: filter 0.15s ease;
+}
+
+.resume-study-btn:hover {
+  filter: brightness(1.08);
+}
+
+.resume-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--status-ok);
+}
+
+.resume-detail {
+  font-size: 12px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* =========================================================
+   Top Bar Answer Toggle Pill
+   ========================================================= */
+.top-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.top-pill-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.top-pill-btn.active {
+  background: var(--status-ok-bg);
+  border-color: var(--status-ok);
+  color: var(--status-ok);
+  font-weight: 600;
+}
+
+/* =========================================================
+   Progress Bar & Question Number Navigator
+   ========================================================= */
+.topic-progress-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.topic-progress-track {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.topic-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--status-ok);
+  transition: width 0.25s ease;
+}
+
+.topic-progress-label {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.nav-counter-btn {
+  padding: 3px 9px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  transition: background-color 0.15s ease;
+}
+
+.nav-counter-btn:hover {
+  background: var(--bg-surface-hover);
+}
+
+.q-navigator-panel {
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 13px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+}
+
+.q-navigator-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.q-navigator-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 3px;
+}
+
+.legend-dot.ok { background: var(--status-ok); }
+.legend-dot.warn { background: var(--status-warn); }
+.legend-dot.flag { background: var(--status-flag); }
+.legend-dot.idle { background: var(--border-strong); }
+
+.q-navigator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.q-nav-cell {
+  height: 32px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.q-nav-cell:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.q-nav-cell.st-correct {
+  background: var(--status-ok-bg);
+  color: var(--status-ok);
+}
+
+.q-nav-cell.st-wrong {
+  background: var(--status-warn-bg);
+  color: var(--status-warn);
+}
+
+.q-nav-cell.st-uncertain {
+  background: var(--status-flag-bg);
+  color: var(--status-flag);
+}
+
+.q-nav-cell.is-current {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* =========================================================
+   Answer Peek / Inline Answer Banner & Option Badges
+   ========================================================= */
+.question-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.peek-ans-btn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.peek-ans-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.peek-ans-btn.active {
+  background: var(--status-ok-bg);
+  border-color: var(--status-ok);
+  color: var(--status-ok);
+  font-weight: 600;
+}
+
+.reset-q-btn {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.reset-q-btn:hover {
+  color: var(--status-warn);
+  border-color: var(--status-warn);
+  background: var(--status-warn-bg);
+}
+
+.answer-preview-banner {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--status-ok-bg);
+  border: 1px solid rgba(143, 168, 153, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--status-ok);
+  font-weight: 600;
+}
+
+.option-badge {
+  margin-left: auto;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.option-badge.ok {
+  background: var(--status-ok-bg);
+  color: var(--status-ok);
+}
+
+.option-badge.warn {
+  background: var(--status-warn-bg);
+  color: var(--status-warn);
+}
