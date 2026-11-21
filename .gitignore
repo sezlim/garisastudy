@@ -1,0 +1,32 @@
+# Python caches & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+venv/
+.venv/
+env/
+ENV/
+.python-version
+*.egg-info/
+dist/
+build/
+
+# Node / frontend build caches
+node_modules/
+.cache/
+
+# OS / Editor / Temporary files
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp
+*.bak
+*.log
+~$*
+.vscode/
+.idea/
+.env
+.env.*
