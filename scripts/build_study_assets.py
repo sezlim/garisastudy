@@ -290,6 +290,14 @@ def main():
                             lines.append(f"- {CIRCLED[k]} {val}")
                     lines.append("")
                     kws = ", ".join(q.get("keywords", []))
+                    ans_nums = q.get("answers") or ([q["answer"]] if q.get("answer") else [])
+                    if ans_nums:
+                        ans_str = ", ".join(CIRCLED.get(str(a), str(a)) for a in ans_nums)
+                        if len(ans_nums) == 4:
+                            ans_str += " (모두정답)"
+                        elif len(ans_nums) > 1:
+                            ans_str += " (복수정답)"
+                        lines.append(f"- **공식 정답**: {ans_str}")
                     lines.append(f"- **핵심 키워드**: {kws}")
                     lines.append(f"- **핵심 해설**: {clean_inline(q.get('short_explanation', ''))}")
                     lines.append("")
