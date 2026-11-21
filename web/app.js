@@ -145,6 +145,7 @@ create policy "Allow anon read/write" on public.study_sync
     copySupabaseSqlBtn: document.getElementById("copySupabaseSqlBtn"),
     saveCloudSyncBtn: document.getElementById("saveCloudSyncBtn"),
     syncNowBtn: document.getElementById("syncNowBtn"),
+    copyMobileLinkBtn: document.getElementById("copyMobileLinkBtn"),
     gemUrlInput: document.getElementById("gemUrlInput"),
     saveGemUrlBtn: document.getElementById("saveGemUrlBtn"),
     settingsProgressMeta: document.getElementById("settingsProgressMeta"),
@@ -1778,10 +1779,39 @@ create policy "Allow anon read/write" on public.study_sync
         const pw = el.authPasswordInput.value || "";
         const remember = Boolean(el.authRememberCheckbox?.checked);
 
-        const res =
+        const prov = el.authCloudProvider?.value || "none";
+        let pendingCloudCfg = null;
+        if (prov === "gist" && el.authGithubToken?.value.trim()) {
+          pendingCloudCfg = {
+            provider: "gist",
+            githubToken: el.authGithubToken.value.trim(),
+          };
+        } else if (
+          prov === "supabase" &&
+          el.authSupabaseUrl?.value.trim() &&
+          el.authSupabaseKey?.value.trim()
+        ) {
+          pendingCloudCfg = {
+            provider: "supabase",
+            supabaseUrl: el.authSupabaseUrl.value.trim(),
+            supabaseKey: el.authSupabaseKey.value.trim(),
+            supabaseTable: "study_sync",
+          };
+        }
+
+        let res =
           authMode === "register"
             ? await window.StudyDB.registerAccount(uname, pw)
             : await window.StudyDB.loginAccount(uname, pw);
+
+        // If logging in on a brand-new device (e.g. mobile) with Cloud Sync credentials,
+        // auto-register locally so cloud records can be pulled right away
+        if (!res.ok && authMode === "login" && pendingCloudCfg) {
+          const exists = await window.StudyDB.getAccount(uname);
+          if (!exists) {
+            res = await window.StudyDB.registerAccount(uname, pw);
+          }
+        }
 
         if (!res.ok) {
           el.authErrorMsg.textContent = res.error || "로그인에 실패했습니다.";
@@ -1789,24 +1819,8 @@ create policy "Allow anon read/write" on public.study_sync
           return;
         }
 
-        // Save optional cloud sync config if provided on login screen
-        const prov = el.authCloudProvider?.value || "none";
-        if (prov === "gist" && el.authGithubToken?.value.trim()) {
-          window.StudyDB.saveCloudConfig(uname, {
-            provider: "gist",
-            githubToken: el.authGithubToken.value.trim(),
-          });
-        } else if (
-          prov === "supabase" &&
-          el.authSupabaseUrl?.value.trim() &&
-          el.authSupabaseKey?.value.trim()
-        ) {
-          window.StudyDB.saveCloudConfig(uname, {
-            provider: "supabase",
-            supabaseUrl: el.authSupabaseUrl.value.trim(),
-            supabaseKey: el.authSupabaseKey.value.trim(),
-            supabaseTable: "study_sync",
-          });
+        if (pendingCloudCfg) {
+          window.StudyDB.saveCloudConfig(uname, pendingCloudCfg);
         }
 
         await completeSignIn(uname, remember);
@@ -1958,6 +1972,31 @@ create policy "Allow anon read/write" on public.study_sync
     }
     if (el.syncNowBtn) {
       el.syncNowBtn.addEventListener("click", () => syncWithCloudNow({ silent: false }));
+    }
+    if (el.copyMobileLinkBtn) {
+      el.copyMobileLinkBtn.addEventListener("click", () => {
+        if (!currentUser || !window.StudyDB) return;
+        const cfg = window.StudyDB.getCloudConfig(currentUser);
+        if (!cfg || cfg.provider === "none") {
+          showToast("먼저 위에서 GitHub Gist 또는 Supabase 동기화 설정을 저장해 주세요");
+          return;
+        }
+        try {
+          const payload = JSON.stringify({ u: currentUser, c: cfg });
+          const bytes = new TextEncoder().encode(payload);
+          let bin = "";
+          bytes.forEach((b) => {
+            bin += String.fromCharCode(b);
+          });
+          const b64 = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+          const baseUrl = window.location.href.split("#")[0];
+          const link = `${baseUrl}#sync=${b64}`;
+          copyTextWithFallback(link);
+          showToast("모바일 연결 링크 복사 완료! 카톡 '나에게 보내기'로 열고 접속하세요");
+        } catch {
+          showToast("연결 링크 생성에 실패했습니다");
+        }
+      });
     }
 
     el.saveGemUrlBtn.addEventListener("click", () => {
@@ -2309,6 +2348,37 @@ create policy "Allow anon read/write" on public.study_sync
     }
   }
 
+  async function tryPairingFromUrlHash() {
+    const hash = window.location.hash || "";
+    if (!hash.startsWith("#sync=")) return null;
+    const rawB64 = hash.slice(6).trim();
+    // Immediately clear sensitive sync token from browser URL bar & history
+    try {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    } catch {
+      window.location.hash = "";
+    }
+    if (!rawB64) return null;
+    try {
+      const pad = "=".repeat((4 - (rawB64.length % 4)) % 4);
+      const b64 = rawB64.replace(/-/g, "+").replace(/_/g, "/") + pad;
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const parsed = JSON.parse(new TextDecoder().decode(bytes));
+      if (!parsed || !parsed.u || !parsed.c) return null;
+      const uname = String(parsed.u).trim();
+      const exists = await window.StudyDB.getAccount(uname);
+      if (!exists) {
+        await window.StudyDB.registerAccount(uname, "");
+      }
+      window.StudyDB.saveCloudConfig(uname, parsed.c);
+      return uname;
+    } catch {
+      return null;
+    }
+  }
+
   async function init() {
     applyTheme();
     applySidebarCollapse();
@@ -2319,7 +2389,15 @@ create policy "Allow anon read/write" on public.study_sync
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       studyData = await resp.json();
 
-      // Check auto-login session
+      // 1. Check 1-tap mobile pairing link (#sync=...)
+      const pairedUser = await tryPairingFromUrlHash();
+      if (pairedUser) {
+        await completeSignIn(pairedUser, true);
+        showToast(`${pairedUser} 계정 PC↔모바일 동기화 연결 완료!`);
+        return;
+      }
+
+      // 2. Check auto-login session
       const session = window.StudyDB.getSavedSession();
       if (session && session.username) {
         const acc = await window.StudyDB.getAccount(session.username);
@@ -2329,7 +2407,7 @@ create policy "Allow anon read/write" on public.study_sync
         }
       }
 
-      // Show login screen for account selection / creation
+      // 3. Show login screen for account selection / creation
       await showAuthOverlay();
     } catch (err) {
       el.streamInner.innerHTML = `
