@@ -218,7 +218,7 @@
               type="button"
               role="tab"
               aria-selected="false"
-              title="시험용 압축 이론 브리핑 (단축키 T)"
+              title="직접 작성하는 토픽 브리핑 (단축키 T)"
             >
               <span>브리핑</span>
             </button>
@@ -233,7 +233,21 @@
               <span id="viewTabSessionLabel">세션 (0/0)</span>
             </button>
           </div>
-          <span class="view-mode-shortcut" aria-hidden="true">T 전환</span>
+          <div class="view-mode-right">
+            <button
+              id="openPeekBriefingBarBtn"
+              class="view-peek-btn"
+              type="button"
+              title="문제를 보면서 오른쪽 패널에서 브리핑 작성/확인"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"/>
+              </svg>
+              <span>브리핑 작성</span>
+            </button>
+            <span class="view-mode-shortcut" aria-hidden="true">T 전환</span>
+          </div>
         </div>
       </div>
 
@@ -298,10 +312,10 @@
     <div class="peek-drawer-header">
       <div class="peek-drawer-title-wrap">
         <span id="briefingPeekCode" class="peek-code-badge"></span>
-        <h2 id="briefingPeekTitle" class="peek-drawer-title">토픽 브리핑</h2>
+        <h2 id="briefingPeekTitle" class="peek-drawer-title">내 브리핑</h2>
       </div>
       <div class="peek-drawer-actions">
-        <button id="briefingPeekFullBtn" class="mini-text-btn" type="button" title="전체 브리핑 화면으로 이동 (T)">전체 보기</button>
+        <button id="briefingPeekFullBtn" class="mini-text-btn" type="button" title="전체 브리핑 화면으로 이동 (T)">전체 화면</button>
         <button id="briefingPeekCloseBtn" class="icon-btn peek-close-btn" type="button" aria-label="브리핑 패널 닫기" title="닫기 (Esc)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <line x1="18" y1="6" x2="6" y2="18"/>
@@ -488,6 +502,7 @@
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
   <script src="./db.js" defer></script>
+  <script src="./briefing_editor.js" defer></script>
   <script src="./app.js" defer></script>
 </body>
 </html>

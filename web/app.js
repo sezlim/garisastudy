@@ -76,7 +76,6 @@ create policy "Allow anon read/write" on public.study_sync
   };
 
   let studyData = null;
-  let theoryData = null;
   let currentUser = null;
   let authMode = "login"; // "login" | "register"
   let state = normalizeState(null);
@@ -144,6 +143,7 @@ create policy "Allow anon read/write" on public.study_sync
     viewTabBriefing: document.getElementById("viewTabBriefing"),
     viewTabSession: document.getElementById("viewTabSession"),
     viewTabSessionLabel: document.getElementById("viewTabSessionLabel"),
+    openPeekBriefingBarBtn: document.getElementById("openPeekBriefingBarBtn"),
     chatStream: document.getElementById("chatStream"),
     streamInner: document.getElementById("streamInner"),
     composerBar: document.getElementById("composerBar"),
@@ -729,327 +729,21 @@ create policy "Allow anon read/write" on public.study_sync
     ].join("\n");
   }
 
-  function getTopicTheory(topicCode) {
-    if (!topicCode || !theoryData || typeof theoryData !== "object") return null;
-    const item = theoryData[topicCode];
-    if (!item || typeof item !== "object") return null;
-    if (!item.core_summary && (!Array.isArray(item.trap_patterns) || item.trap_patterns.length === 0)) {
-      return null;
-    }
-    return item;
-  }
-
   function resolveInitialViewMode(topic, { forceSession = false } = {}) {
     if (forceSession || !topic) return "session";
-    if (state.defaultTopicView === "briefing" && getTopicTheory(topic.topic_code)) {
+    if (state.defaultTopicView === "briefing") {
       return "briefing";
     }
     return "session";
   }
 
-  function formatInlineMarkdown(str) {
-    let escaped = escapeHtml(str ?? "");
-    // Inline code first so we don't style inside code spans
-    const codeSlots = [];
-    escaped = escaped.replace(/`([^`\n]+)`/g, (_, inner) => {
-      const idx = codeSlots.length;
-      codeSlots.push(`<code class="briefing-code">${inner}</code>`);
-      return `\u0000CODE${idx}\u0000`;
-    });
-    // Bold **...**
-    escaped = escaped.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
-    // Highlight exam year/round references gently (e.g., 2025년(제26회) 15번, 2024년 9번)
-    escaped = escaped.replace(
-      /(\d{4}년(?:\(제\d+회\))?\s*(?:\d+교시\s*)?\d+번(?:\s*\/\s*\d+번)?)/g,
-      '<span class="briefing-ref-pill">$1</span>'
-    );
-    // Restore code slots
-    escaped = escaped.replace(/\u0000CODE(\d+)\u0000/g, (_, idx) => codeSlots[Number(idx)] || "");
-    return escaped;
-  }
-
-  function highlightLeadIn(htmlStr) {
-    // If a bullet starts with "short label: body", emphasize the lead-in label gently
-    if (htmlStr.startsWith("<strong>") || htmlStr.startsWith("<code")) return htmlStr;
-    const m = htmlStr.match(/^([^:<>]{2,32})(:|\s=)\s+(.+)$/);
-    if (!m) return htmlStr;
-    return `<span class="briefing-lead">${m[1]}${m[2]}</span> ${m[3]}`;
-  }
-
-  function splitSubItems(bodyText) {
-    const raw = String(bodyText || "").trim();
-    if (!raw) return [];
-    // Mask inline code spans (`...`) and parenthetical remarks containing ※ so math "-" or "(※ ...)" are never split
-    const masks = [];
-    const masked = raw.replace(/`[^`\n]+`|\([^()\n]*※[^()\n]*\)/g, (m) => {
-      const idx = masks.length;
-      masks.push(m);
-      return `\u0001M${idx}\u0001`;
-    });
-
-    const normalized = masked
-      .replace(/\s+(?=[①②③④⑤⑥⑦⑧⑨]\s+)/g, "\n")
-      .replace(/\s+(?=•\s+)/g, "\n")
-      .replace(/(?:^|[.!?:])\s+(?=※\s*)/g, (m) => (m[0] === " " ? "\n" : m[0] + "\n"))
-      .replace(/([.!?])\s+(?=-\s+(?!\d))/g, "$1\n");
-
-    return normalized
-      .split(/\n+/)
-      .map((s) => s.replace(/\u0001M(\d+)\u0001/g, (_, idx) => masks[Number(idx)] || "").trim())
-      .filter(Boolean);
-  }
-
-  function renderSummaryItemsHtml(bodyText) {
-    const items = splitSubItems(bodyText);
-    if (items.length === 0) return "";
-    if (items.length === 1 && !/^[①②③④⑤⑥⑦⑧⑨•※\-]/.test(items[0])) {
-      return `<p class="briefing-card-text">${highlightLeadIn(formatInlineMarkdown(items[0]))}</p>`;
-    }
-    return `
-      <ul class="briefing-sublist">
-        ${items
-          .map((item) => {
-            if (item.startsWith("※")) {
-              const cleaned = item.replace(/^※\s*/, "");
-              return `<li class="briefing-subitem is-note"><span class="briefing-marker note">※</span><span class="briefing-subtext">${formatInlineMarkdown(cleaned)}</span></li>`;
-            }
-            const circled = item.match(/^([①②③④⑤⑥⑦⑧⑨])\s+(.+)$/);
-            if (circled) {
-              return `<li class="briefing-subitem"><span class="briefing-marker num">${circled[1]}</span><span class="briefing-subtext">${highlightLeadIn(formatInlineMarkdown(circled[2]))}</span></li>`;
-            }
-            const bulleted = item.match(/^[•\-·]\s+(.+)$/);
-            if (bulleted) {
-              return `<li class="briefing-subitem"><span class="briefing-marker dot">•</span><span class="briefing-subtext">${highlightLeadIn(formatInlineMarkdown(bulleted[1]))}</span></li>`;
-            }
-            return `<li class="briefing-subitem"><span class="briefing-marker dot">•</span><span class="briefing-subtext">${highlightLeadIn(formatInlineMarkdown(item))}</span></li>`;
-          })
-          .join("")}
-      </ul>
-    `;
-  }
-
-  function formatCoreSummaryHtml(summary) {
-    const raw = String(summary || "").trim();
-    if (!raw) return "";
-
-    // Protect inline code spans (`...`) from being split by top-level section delimiters like [guard]
-    const codeMasks = [];
-    const safeRaw = raw.replace(/`[^`\n]+`/g, (m) => {
-      const idx = codeMasks.length;
-      codeMasks.push(m);
-      return `\u0002C${idx}\u0002`;
-    });
-    const unmask = (s) => s.replace(/\u0002C(\d+)\u0002/g, (_, idx) => codeMasks[Number(idx)] || "");
-
-    let blocks = [];
-
-    // Pattern A: [Section Title] body ...
-    if (/(?:^|\s)\[[^\]\n]{2,56}\]\s+/.test(safeRaw)) {
-      const parts = safeRaw
-        .replace(/\s+(?=\[[^\]\n]{2,56}\]\s+)/g, "\n")
-        .split(/\n+/)
-        .map((s) => unmask(s).trim())
-        .filter(Boolean);
-      parts.forEach((part) => {
-        const m = part.match(/^\[([^\]\n]{2,56})\]\s+(.+)$/);
-        if (m) blocks.push({ title: m[1].trim(), body: m[2].trim() });
-        else blocks.push({ title: "", body: part });
-      });
-    }
-    // Pattern B: ■ Title: body ...
-    else if (/(?:^|\s)■\s+/.test(safeRaw)) {
-      const parts = safeRaw
-        .replace(/\s+(?=■\s+)/g, "\n")
-        .split(/\n+/)
-        .map((s) => unmask(s).replace(/^■\s*/, "").trim())
-        .filter(Boolean);
-      parts.forEach((part) => {
-        const m = part.match(/^([^:\n]{2,42}):\s+(.+)$/);
-        if (m) blocks.push({ title: m[1].trim(), body: m[2].trim() });
-        else blocks.push({ title: "", body: part });
-      });
-    }
-    // Pattern C: • **Title**: body or - **Title**: body
-    else if (/(?:^|\s)[•\-]\s+\*\*[^*\n]{2,46}\*\*\s*:/.test(safeRaw)) {
-      const parts = safeRaw
-        .replace(/\s+(?=[•\-]\s+\*\*[^*\n]{2,46}\*\*\s*:)/g, "\n")
-        .split(/\n+/)
-        .map((s) => unmask(s).replace(/^[•\-]\s+/, "").trim())
-        .filter(Boolean);
-      parts.forEach((part) => {
-        const m = part.match(/^\*\*([^*\n]{2,46})\*\*\s*:\s*(.+)$/);
-        if (m) blocks.push({ title: m[1].trim(), body: m[2].trim() });
-        else blocks.push({ title: "", body: part });
-      });
-    }
-    // Pattern D: ① Title: body ② Title: body ...
-    else if (/(?:^|\s)[①②③④⑤⑥]\s+/.test(safeRaw)) {
-      const parts = safeRaw
-        .replace(/\s+(?=[①②③④⑤⑥]\s+)/g, "\n")
-        .split(/\n+/)
-        .map((s) => unmask(s).trim())
-        .filter(Boolean);
-      parts.forEach((part) => {
-        const m = part.match(/^([①②③④⑤⑥])\s+\*\*([^*\n]{2,42})\*\*\s*[:：]?\s*(.+)$/);
-        if (m) {
-          blocks.push({ title: `${m[1]} ${m[2].trim()}`, body: m[3].trim() });
-          return;
-        }
-        const m2 = part.match(/^([①②③④⑤⑥])\s+([^:\n]{2,36}):\s+(.+)$/);
-        if (m2) {
-          blocks.push({ title: `${m2[1]} ${m2[2].trim()}`, body: m2[3].trim() });
-          return;
-        }
-        blocks.push({ title: "", body: part });
-      });
-    }
-    // Fallback: single block
-    else {
-      blocks = [{ title: "", body: raw }];
-    }
-
-    return blocks
-      .map((blk) => {
-        const titleHtml = blk.title
-          ? `<div class="briefing-card-heading">${formatInlineMarkdown(blk.title)}</div>`
-          : "";
-        return `
-          <div class="briefing-summary-card">
-            ${titleHtml}
-            ${renderSummaryItemsHtml(blk.body)}
-          </div>
-        `;
-      })
-      .join("");
-  }
-
-  function formatTableCellHtml(cellText, colIdx) {
-    const raw = String(cellText || "").trim();
-    if (!raw) return "";
-    // For readability in dense non-first columns, break cleanly on "; " when cell is long
-    if (colIdx > 0 && raw.length >= 44 && raw.includes("; ")) {
-      const pieces = raw.split(/;\s+/).map((p) => p.trim()).filter(Boolean);
-      if (pieces.length >= 2) {
-        return pieces
-          .map((p) => `<div class="briefing-cell-line">${formatInlineMarkdown(p)}</div>`)
-          .join("");
-      }
-    }
-    return formatInlineMarkdown(raw);
-  }
-
-  function formatPeAlertHtml(text) {
-    const raw = String(text || "").trim();
-    if (!raw) return "";
-    // Split multi-sentence trend alerts cleanly for scannability
-    const split = raw
-      .replace(/\s+(?=\[(?:정보관리|컴응))/g, "\n")
-      .replace(/(다\.|됨\.|습니다\.|추세\.|유력\.)\s+/g, "$1\n")
-      .split(/\n+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    return split.map((p) => `<p class="briefing-pe-para">${formatInlineMarkdown(p)}</p>`).join("");
-  }
-
-  function renderBriefingTrapsHtml(traps) {
-    if (!Array.isArray(traps) || traps.length === 0) return "";
-    return `
-      <div class="briefing-trap-list">
-        ${traps
-          .map(
-            (t, idx) => `
-          <div class="briefing-trap-card">
-            <div class="briefing-trap-head">
-              <span class="briefing-trap-badge">함정 ${String(idx + 1).padStart(2, "0")}</span>
-              <div class="briefing-trap-pattern">${formatInlineMarkdown(t.pattern || "")}</div>
-            </div>
-            ${
-              t.example_ref
-                ? `<div class="briefing-trap-ref">
-                     <span class="briefing-trap-ref-label">기출 근거</span>
-                     <span class="briefing-trap-ref-text">${formatInlineMarkdown(t.example_ref)}</span>
-                   </div>`
-                : ""
-            }
-          </div>
-        `
-          )
-          .join("")}
-      </div>
-    `;
-  }
-
-  function renderBriefingTableHtml(table) {
-    if (
-      !table ||
-      typeof table !== "object" ||
-      !Array.isArray(table.headers) ||
-      table.headers.length === 0 ||
-      !Array.isArray(table.rows) ||
-      table.rows.length === 0
-    ) {
-      return "";
-    }
-    const headerHtml = table.headers.map((h) => `<th>${formatInlineMarkdown(h)}</th>`).join("");
-    const rowsHtml = table.rows
-      .map(
-        (row) =>
-          `<tr>${row.map((cell, ci) => `<td>${formatTableCellHtml(cell, ci)}</td>`).join("")}</tr>`
-      )
-      .join("");
-    return `
-      ${table.title ? `<div class="briefing-table-caption">${formatInlineMarkdown(table.title)}</div>` : ""}
-      <div class="briefing-table-scroll">
-        <table class="briefing-table">
-          <thead><tr>${headerHtml}</tr></thead>
-          <tbody>${rowsHtml}</tbody>
-        </table>
-      </div>
-    `;
-  }
-
-  function buildGeminiBriefingPrompt(subj, topic, theory) {
-    const lines = [
-      "---",
-      `[과목/토픽] ${subj.display_name} > ${topic.topic_code} ${topic.topic}`,
-      "",
-      "[1. 30초 핵심 배경]",
-      theory.core_summary || "",
-      "",
-      "[2. 단골 오답 함정 패턴]",
-      ...(theory.trap_patterns || []).map(
-        (t, idx) => `${idx + 1}. ${t.pattern}${t.example_ref ? ` (기출: ${t.example_ref})` : ""}`
-      ),
-    ];
-
-    if (
-      theory.comparison_table &&
-      Array.isArray(theory.comparison_table.headers) &&
-      Array.isArray(theory.comparison_table.rows)
-    ) {
-      lines.push("", `[3. 핵심 비교·암기표: ${theory.comparison_table.title || ""}]`);
-      lines.push(`| ${theory.comparison_table.headers.join(" | ")} |`);
-      lines.push(`| ${theory.comparison_table.headers.map(() => "---").join(" | ")} |`);
-      theory.comparison_table.rows.forEach((row) => {
-        lines.push(`| ${row.join(" | ")} |`);
-      });
-    }
-
-    if (Array.isArray(theory.cross_domain_links) && theory.cross_domain_links.length > 0) {
-      lines.push("", "[4. 타 영역 크로스오버 출제 포인트]");
-      theory.cross_domain_links.forEach((link) => lines.push(`- ${link}`));
-    }
-
-    if (theory.pe_trend_alert) {
-      lines.push("", "[5. 기술사 연계 신유형 경보]", theory.pe_trend_alert);
-    }
-
-    lines.push(
-      "",
-      "[질문 요청] 이 토픽에서 가장 헷갈리는 핵심 함정을 예시로 쉽게 설명해 줘",
-      "---"
-    );
-    return lines.join("\n");
+  function openBriefingImageLightbox(src) {
+    if (!src) return;
+    lightboxQid = null;
+    el.lightboxImg.src = src;
+    el.lightboxImg.classList.remove("dark-inverted");
+    el.lightboxInvertBtn.textContent = "다크 반전";
+    el.lightboxModal.classList.remove("hidden");
   }
 
   function getTopicSessionCounts(topic) {
@@ -1078,15 +772,27 @@ create policy "Allow anon read/write" on public.study_sync
       el.viewTabSessionLabel.textContent = `세션 (${done}/${total})`;
     }
     const isBriefing = activeViewMode === "briefing";
+    const hasNote = Boolean(window.BriefingEditor && window.BriefingEditor.hasBriefing(topic.topic_code));
     el.viewTabBriefing.classList.toggle("active", isBriefing);
+    el.viewTabBriefing.classList.toggle("has-note", hasNote);
     el.viewTabBriefing.setAttribute("aria-selected", String(isBriefing));
     el.viewTabSession.classList.toggle("active", !isBriefing);
     el.viewTabSession.setAttribute("aria-selected", String(!isBriefing));
+    if (el.openPeekBriefingBarBtn) {
+      el.openPeekBriefingBarBtn.classList.toggle("hidden", isBriefing);
+      el.openPeekBriefingBarBtn.classList.toggle("has-note", hasNote);
+    }
   }
 
-  function setViewMode(mode, { scrollTop = true } = {}) {
+  function setViewMode(mode, { scrollTop = true, force = false } = {}) {
     const next = mode === "briefing" ? "briefing" : "session";
-    closeBriefingPeek();
+    if (!force && activeViewMode === "briefing" && next !== "briefing") {
+      if (window.BriefingEditor && !window.BriefingEditor.confirmDiscardIfDirty()) return;
+    }
+    if (!closeBriefingPeek({ force })) return;
+    if (activeViewMode === "briefing" && next !== "briefing" && window.BriefingEditor) {
+      window.BriefingEditor.unmountActive();
+    }
     activeViewMode = next;
     renderMainStream();
     if (scrollTop) el.chatStream.scrollTop = 0;
@@ -1094,51 +800,24 @@ create policy "Allow anon read/write" on public.study_sync
 
   function openBriefingPeek() {
     const topic = getActiveTopic();
-    const theory = getTopicTheory(topic?.topic_code);
-    if (!topic || !theory || !el.briefingPeekDrawer || !el.briefingPeekBackdrop) {
-      showToast("이 토픽의 브리핑 데이터가 없습니다");
+    if (!topic || !el.briefingPeekDrawer || !el.briefingPeekBackdrop || !window.BriefingEditor) {
       return;
     }
-
     if (el.briefingPeekCode) el.briefingPeekCode.textContent = topic.topic_code;
     if (el.briefingPeekTitle) el.briefingPeekTitle.textContent = topic.topic;
 
-    const trapsHtml = renderBriefingTrapsHtml(theory.trap_patterns);
-    const tableHtml = renderBriefingTableHtml(theory.comparison_table);
-
-    el.briefingPeekBody.innerHTML = `
-      ${
-        trapsHtml
-          ? `
-        <section class="briefing-section">
-          <h3 class="briefing-section-title">
-            <span class="briefing-section-index">01</span>
-            <span>단골 오답 함정 패턴</span>
-          </h3>
-          ${trapsHtml}
-        </section>
-      `
-          : ""
-      }
-      ${
-        tableHtml
-          ? `
-        <section class="briefing-section">
-          <h3 class="briefing-section-title">
-            <span class="briefing-section-index">02</span>
-            <span>핵심 비교·암기표</span>
-          </h3>
-          ${tableHtml}
-        </section>
-      `
-          : ""
-      }
-      ${
-        !trapsHtml && !tableHtml
-          ? `<div class="empty-state">표시할 함정·비교표 데이터가 없습니다.</div>`
-          : ""
-      }
-    `;
+    el.briefingPeekBody.innerHTML = `<div id="briefingPeekEditorHost" class="be-peek-host"></div>`;
+    const host = document.getElementById("briefingPeekEditorHost");
+    window.BriefingEditor.mountEditor(host, {
+      topicCode: topic.topic_code,
+      compact: true,
+      onSaved: () => {
+        renderViewModeBar();
+        renderTopicList();
+      },
+      onOpenLightbox: openBriefingImageLightbox,
+      onToast: showToast,
+    });
 
     briefingPeekOpen = true;
     el.briefingPeekBackdrop.classList.remove("hidden");
@@ -1146,147 +825,92 @@ create policy "Allow anon read/write" on public.study_sync
     el.briefingPeekBody.scrollTop = 0;
   }
 
-  function closeBriefingPeek() {
-    if (!briefingPeekOpen) return;
+  function closeBriefingPeek({ force = false } = {}) {
+    if (!briefingPeekOpen) return true;
+    if (!force && window.BriefingEditor && !window.BriefingEditor.confirmDiscardIfDirty()) {
+      return false;
+    }
+    if (window.BriefingEditor) {
+      window.BriefingEditor.unmountActive();
+    }
     briefingPeekOpen = false;
     if (el.briefingPeekBackdrop) el.briefingPeekBackdrop.classList.add("hidden");
     if (el.briefingPeekDrawer) el.briefingPeekDrawer.classList.add("hidden");
+    if (el.briefingPeekBody) el.briefingPeekBody.innerHTML = "";
+    return true;
   }
 
   function renderBriefingStream(subj, topic) {
-    const theory = getTopicTheory(topic.topic_code);
-    if (!theory) {
-      el.streamInner.innerHTML = `
-        <div class="empty-state">
-          <div>이 토픽(${escapeHtml(topic.topic_code)})의 압축 이론 브리핑 데이터가 준비되지 않았습니다.</div>
-          <button id="briefingStartSessionBtn" class="empty-state-btn" type="button">문제 풀이 세션으로 이동 →</button>
-        </div>
-      `;
-      return;
-    }
-
     const { done, total } = getTopicSessionCounts(topic);
-    const summaryHtml = formatCoreSummaryHtml(theory.core_summary);
-    const trapsHtml = renderBriefingTrapsHtml(theory.trap_patterns);
-    const tableHtml = renderBriefingTableHtml(theory.comparison_table);
-    const linksHtml =
-      Array.isArray(theory.cross_domain_links) && theory.cross_domain_links.length > 0
-        ? `
-          <ul class="briefing-link-list">
-            ${theory.cross_domain_links
-              .map((l) => `<li class="briefing-link-item">${highlightLeadIn(formatInlineMarkdown(l))}</li>`)
-              .join("")}
-          </ul>
-        `
-        : "";
-
-    let secNum = 0;
-    const nextSec = () => String(++secNum).padStart(2, "0");
-
     const metaLabel = topic.is_trend
       ? `${subj.display_name} · 기술사 트렌드 ${total}건`
       : `${subj.display_name} · 빈출 ${topic.frequency_rank}위 · 풀이 ${done}/${total} · 기술사 ${topic.pe_count}건`;
 
     el.streamInner.innerHTML = `
-      <article class="briefing-doc" aria-label="토픽 압축 이론 브리핑">
+      <article class="briefing-doc" aria-label="직접 작성하는 토픽 브리핑">
         <header class="briefing-header">
           <div class="briefing-badge-row">
-            <span class="briefing-doc-tag">BRIEFING · ${escapeHtml(topic.topic_code)}</span>
+            <div class="briefing-badge-left">
+              <span class="briefing-doc-tag">MY BRIEFING · ${escapeHtml(topic.topic_code)}</span>
+              <span class="briefing-shared-badge" title="계정 DB와 연동되지 않고 이 브라우저 로컬에 공통 저장됩니다">모든 계정 공통</span>
+            </div>
             <span>${escapeHtml(metaLabel)}</span>
           </div>
-          <h1 class="briefing-title">${escapeHtml(theory.topic_name || topic.topic)}</h1>
+          <h1 class="briefing-title">${escapeHtml(topic.topic)}</h1>
           ${topic.desc ? `<p class="briefing-subtitle">${escapeHtml(topic.desc)}</p>` : ""}
         </header>
 
-        ${
-          summaryHtml
-            ? `
-          <section class="briefing-section">
-            <h2 class="briefing-section-title">
-              <span class="briefing-section-index">${nextSec()}</span>
-              <span>30초 핵심 배경</span>
-            </h2>
-            <div class="briefing-summary-stack">${summaryHtml}</div>
-          </section>
-        `
-            : ""
-        }
-
-        ${
-          trapsHtml
-            ? `
-          <section class="briefing-section">
-            <h2 class="briefing-section-title">
-              <span class="briefing-section-index">${nextSec()}</span>
-              <span>단골 오답 함정 패턴 (${theory.trap_patterns.length})</span>
-            </h2>
-            ${trapsHtml}
-          </section>
-        `
-            : ""
-        }
-
-        ${
-          tableHtml
-            ? `
-          <section class="briefing-section">
-            <h2 class="briefing-section-title">
-              <span class="briefing-section-index">${nextSec()}</span>
-              <span>핵심 비교·암기표</span>
-            </h2>
-            ${tableHtml}
-          </section>
-        `
-            : ""
-        }
-
-        ${
-          linksHtml
-            ? `
-          <section class="briefing-section">
-            <h2 class="briefing-section-title">
-              <span class="briefing-section-index">${nextSec()}</span>
-              <span>타 영역 크로스오버 출제 포인트</span>
-            </h2>
-            ${linksHtml}
-          </section>
-        `
-            : ""
-        }
-
-        ${
-          theory.pe_trend_alert
-            ? `
-          <section class="briefing-section">
-            <h2 class="briefing-section-title">
-              <span class="briefing-section-index">${nextSec()}</span>
-              <span>기술사 연계 신유형 경보</span>
-            </h2>
-            <details class="pe-accordion briefing-pe-alert" open>
-              <summary>
-                <span>기술사 출제 동향 기반 신규 예상 포인트</span>
-                <span>▾</span>
-              </summary>
-              <div class="briefing-pe-body">${formatPeAlertHtml(theory.pe_trend_alert)}</div>
-            </details>
-          </section>
-        `
-            : ""
-        }
+        <div id="briefingEditorHost" class="be-full-host"></div>
 
         <div class="briefing-footer-actions">
           <button id="briefingStartSessionBtn" class="briefing-primary-btn" type="button">
             <span>${topic.is_trend ? "이 토픽 트렌드 문항 보기 →" : "이 토픽 문제 바로 풀기 →"}</span>
           </button>
-          <button id="briefingCopyGemBtn" class="briefing-secondary-btn" type="button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            <span>이 토픽 이론 제미니에 질문 복사</span>
+          <button id="briefingExportAllBtn" class="briefing-secondary-btn" type="button" title="작성한 모든 토픽 브리핑을 JSON 파일로 백업">
+            <span>브리핑 백업</span>
           </button>
+          <button id="briefingImportAllBtn" class="briefing-secondary-btn" type="button" title="백업해 둔 브리핑 JSON 파일 불러오기">
+            <span>브리핑 불러오기</span>
+          </button>
+          <input id="briefingImportFileInput" type="file" accept=".json,application/json" hidden />
         </div>
       </article>
     `;
+
+    const host = document.getElementById("briefingEditorHost");
+    if (host && window.BriefingEditor) {
+      window.BriefingEditor.mountEditor(host, {
+        topicCode: topic.topic_code,
+        compact: false,
+        onSaved: () => {
+          renderViewModeBar();
+          renderTopicList();
+        },
+        onOpenLightbox: openBriefingImageLightbox,
+        onToast: showToast,
+      });
+    }
+
+    const importInput = document.getElementById("briefingImportFileInput");
+    if (importInput) {
+      importInput.addEventListener("change", async () => {
+        const file = importInput.files?.[0];
+        if (!file || !window.BriefingEditor) return;
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          const count = await window.BriefingEditor.importAllBriefings(parsed);
+          renderTopicList();
+          renderViewModeBar();
+          renderBriefingStream(subj, topic);
+          showToast(`브리핑 ${count}개 토픽을 불러왔습니다`);
+        } catch (err) {
+          showToast(err.message || "브리핑 파일을 불러오지 못했습니다");
+        } finally {
+          importInput.value = "";
+        }
+      });
+    }
   }
 
   function openGemWithPrompt(promptText) {
@@ -1366,16 +990,18 @@ create policy "Allow anon read/write" on public.study_sync
       }
 
       const rankDisplay = t.is_trend ? "✦" : `${t.frequency_rank}`;
+      const hasNote = Boolean(window.BriefingEditor && window.BriefingEditor.hasBriefing(t.topic_code));
       return `
         <button
           class="topic-item ${isActive ? "active" : ""}"
           type="button"
           data-topic="${escapeHtml(t.topic_code)}"
-          title="${escapeHtml(t.topic)}"
+          title="${escapeHtml(t.topic)}${hasNote ? " (내 브리핑 있음)" : ""}"
         >
           <span class="topic-item-left">
             <span class="topic-rank">${rankDisplay}</span>
             <span class="topic-name">${escapeHtml(t.topic)}</span>
+            ${hasNote ? `<span class="topic-note-dot" aria-label="브리핑 작성됨"></span>` : ""}
           </span>
           <span class="topic-stat">${escapeHtml(statText)}</span>
         </button>
@@ -1610,17 +1236,15 @@ create policy "Allow anon read/write" on public.study_sync
         `
         : "";
 
-    const peekBriefingBtnHtml = getTopicTheory(topic.topic_code)
-      ? `
-          <button id="peekBriefingBtn" class="action-chip-btn" type="button" title="현재 토픽 오답 함정·비교표 빠르게 보기">
+    const peekBriefingBtnHtml = `
+          <button id="peekBriefingBtn" class="action-chip-btn" type="button" title="문제를 보면서 오른쪽 패널에서 내 브리핑 작성/확인">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"/>
             </svg>
-            <span>브리핑 보기</span>
+            <span>브리핑 작성 / 보기</span>
           </button>
-        `
-      : "";
+        `;
 
     const copyImgBtnHtml =
       q.has_image && q.image_path
@@ -1980,7 +1604,9 @@ create policy "Allow anon read/write" on public.study_sync
   // Navigation & Actions
   function selectSubject(subjectCode) {
     if (state.activeSubjectCode === subjectCode) return;
-    closeBriefingPeek();
+    if (window.BriefingEditor && !window.BriefingEditor.confirmDiscardIfDirty()) return;
+    closeBriefingPeek({ force: true });
+    if (window.BriefingEditor) window.BriefingEditor.unmountActive();
     state.activeSubjectCode = subjectCode;
     const subj = getActiveSubject();
     const firstTopic = subj.topics[0] || null;
@@ -1994,7 +1620,9 @@ create policy "Allow anon read/write" on public.study_sync
   }
 
   function selectTopic(topicCode, targetQid = null) {
-    closeBriefingPeek();
+    if (window.BriefingEditor && !window.BriefingEditor.confirmDiscardIfDirty()) return;
+    closeBriefingPeek({ force: true });
+    if (window.BriefingEditor) window.BriefingEditor.unmountActive();
     state.activeTopicCode = topicCode;
     const topic = getActiveTopic();
     activeViewMode = resolveInitialViewMode(topic, { forceSession: Boolean(targetQid) });
@@ -2048,7 +1676,9 @@ create policy "Allow anon read/write" on public.study_sync
       showToast("저장된 최근 학습 위치가 없습니다");
       return;
     }
-    closeBriefingPeek();
+    if (window.BriefingEditor && !window.BriefingEditor.confirmDiscardIfDirty()) return;
+    closeBriefingPeek({ force: true });
+    if (window.BriefingEditor) window.BriefingEditor.unmountActive();
     state.activeSubjectCode = lp.subjectCode;
     state.activeTopicCode = lp.topicCode;
     state.filter = "all";
@@ -2064,7 +1694,7 @@ create policy "Allow anon read/write" on public.study_sync
     stealthActive = force !== undefined ? Boolean(force) : !stealthActive;
     el.stealthScreen.classList.toggle("hidden", !stealthActive);
     if (stealthActive) {
-      closeBriefingPeek();
+      closeBriefingPeek({ force: true });
       closeSettings();
       closeLightbox();
       el.filterMenu.classList.add("hidden");
@@ -2174,13 +1804,16 @@ create policy "Allow anon read/write" on public.study_sync
     if (el.viewTabSession) {
       el.viewTabSession.addEventListener("click", () => setViewMode("session"));
     }
+    if (el.openPeekBriefingBarBtn) {
+      el.openPeekBriefingBarBtn.addEventListener("click", openBriefingPeek);
+    }
 
     // Briefing Peek Drawer controls
     if (el.briefingPeekBackdrop) {
-      el.briefingPeekBackdrop.addEventListener("click", closeBriefingPeek);
+      el.briefingPeekBackdrop.addEventListener("click", () => closeBriefingPeek());
     }
     if (el.briefingPeekCloseBtn) {
-      el.briefingPeekCloseBtn.addEventListener("click", closeBriefingPeek);
+      el.briefingPeekCloseBtn.addEventListener("click", () => closeBriefingPeek());
     }
     if (el.briefingPeekFullBtn) {
       el.briefingPeekFullBtn.addEventListener("click", () => setViewMode("briefing"));
@@ -2346,13 +1979,28 @@ create policy "Allow anon read/write" on public.study_sync
         setViewMode("session");
         return;
       }
-      if (e.target.closest("#briefingCopyGemBtn") && subj && topic) {
-        const theory = getTopicTheory(topic.topic_code);
-        if (theory) {
-          openGemWithPrompt(buildGeminiBriefingPrompt(subj, topic, theory));
-        } else {
-          showToast("복사할 브리핑 데이터가 없습니다");
+      if (e.target.closest("#briefingExportAllBtn") && window.BriefingEditor) {
+        const data = window.BriefingEditor.exportAllBriefings();
+        if (data.count === 0) {
+          showToast("백업할 저장된 브리핑이 없습니다");
+          return;
         }
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const dateStr = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `garisastudy_briefings_${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast(`브리핑 ${data.count}개 토픽을 JSON으로 백업했습니다`);
+        return;
+      }
+      if (e.target.closest("#briefingImportAllBtn")) {
+        const inp = document.getElementById("briefingImportFileInput");
+        if (inp) inp.click();
         return;
       }
 
@@ -2426,6 +2074,9 @@ create policy "Allow anon read/write" on public.study_sync
     }
     if (el.logoutBtn) {
       el.logoutBtn.addEventListener("click", () => {
+        if (window.BriefingEditor && !window.BriefingEditor.confirmDiscardIfDirty()) return;
+        closeBriefingPeek({ force: true });
+        if (window.BriefingEditor) window.BriefingEditor.unmountActive();
         window.StudyDB.setSavedSession(null, false);
         currentUser = null;
         showAuthOverlay();
@@ -3074,7 +2725,7 @@ create policy "Allow anon read/write" on public.study_sync
         : null;
 
     activeViewMode = resolveInitialViewMode(topic, { forceSession: Boolean(resumeQid) });
-    closeBriefingPeek();
+    closeBriefingPeek({ force: true });
 
     renderAll({ rebuildQueue: true, keepCurrentQid: resumeQid });
     if (state.lastPosition && state.lastPosition.yearRound) {
@@ -3127,13 +2778,13 @@ create policy "Allow anon read/write" on public.study_sync
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         return resp.json();
       });
-      const theoryPromise = fetch("./data/theory_data.json")
-        .then((resp) => (resp.ok ? resp.json() : null))
-        .catch(() => null);
+      const briefingStoragePromise =
+        window.BriefingEditor && typeof window.BriefingEditor.initStorage === "function"
+          ? window.BriefingEditor.initStorage().catch(() => null)
+          : Promise.resolve(null);
 
-      const [loadedStudy, loadedTheory] = await Promise.all([studyPromise, theoryPromise]);
+      const [loadedStudy] = await Promise.all([studyPromise, briefingStoragePromise]);
       studyData = loadedStudy;
-      theoryData = loadedTheory && typeof loadedTheory === "object" ? loadedTheory : {};
 
       // 1. Check 1-tap mobile pairing link (#sync=...)
       const pairedUser = await tryPairingFromUrlHash();
