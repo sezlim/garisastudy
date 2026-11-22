@@ -2,6 +2,7 @@
   "use strict";
 
   const DEFAULT_GEM_URL = "https://gemini.google.com/app";
+  const DEFAULT_VIEW_PREF_KEY = "ai_workspace_default_topic_view_v1";
   const CIRCLED = { 1: "①", 2: "②", 3: "③", 4: "④" };
   const DAY_MS = 24 * 60 * 60 * 1000;
   const DOUBLE_ESC_MS = 420;
@@ -35,10 +36,31 @@ create policy "Allow anon read/write" on public.study_sync
     "05_금_보안": { day: "금", name: "보안" },
   };
 
+  function readSavedDefaultTopicView() {
+    try {
+      const v = localStorage.getItem(DEFAULT_VIEW_PREF_KEY);
+      if (v === "briefing" || v === "session") return v;
+    } catch {
+      // ignore storage errors
+    }
+    return "briefing";
+  }
+
+  function writeSavedDefaultTopicView(val) {
+    try {
+      if (val === "briefing" || val === "session") {
+        localStorage.setItem(DEFAULT_VIEW_PREF_KEY, val);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }
+
   const DEFAULT_STATE = {
     theme: "dark",
     invertImages: true,
     alwaysShowAnswer: false,
+    defaultTopicView: readSavedDefaultTopicView(),
     gemUrl: "",
     activeSubjectCode: "01_월_감리및사업관리",
     activeTopicCode: null,
@@ -54,9 +76,12 @@ create policy "Allow anon read/write" on public.study_sync
   };
 
   let studyData = null;
+  let theoryData = null;
   let currentUser = null;
   let authMode = "login"; // "login" | "register"
   let state = normalizeState(null);
+  let activeViewMode = "session"; // "briefing" | "session"
+  let briefingPeekOpen = false;
   let currentQueue = [];
   let currentIndex = 0;
   let randomSeedKey = "";
@@ -115,6 +140,10 @@ create policy "Allow anon read/write" on public.study_sync
     alwaysShowAnsBtn: document.getElementById("alwaysShowAnsBtn"),
     stealthBtn: document.getElementById("stealthBtn"),
     settingsBtn: document.getElementById("settingsBtn"),
+    viewModeBar: document.getElementById("viewModeBar"),
+    viewTabBriefing: document.getElementById("viewTabBriefing"),
+    viewTabSession: document.getElementById("viewTabSession"),
+    viewTabSessionLabel: document.getElementById("viewTabSessionLabel"),
     chatStream: document.getElementById("chatStream"),
     streamInner: document.getElementById("streamInner"),
     composerBar: document.getElementById("composerBar"),
@@ -122,6 +151,13 @@ create policy "Allow anon read/write" on public.study_sync
     memoSavedHint: document.getElementById("memoSavedHint"),
     uncertainBtn: document.getElementById("uncertainBtn"),
     nextBtn: document.getElementById("nextBtn"),
+    briefingPeekBackdrop: document.getElementById("briefingPeekBackdrop"),
+    briefingPeekDrawer: document.getElementById("briefingPeekDrawer"),
+    briefingPeekCode: document.getElementById("briefingPeekCode"),
+    briefingPeekTitle: document.getElementById("briefingPeekTitle"),
+    briefingPeekFullBtn: document.getElementById("briefingPeekFullBtn"),
+    briefingPeekCloseBtn: document.getElementById("briefingPeekCloseBtn"),
+    briefingPeekBody: document.getElementById("briefingPeekBody"),
     stealthScreen: document.getElementById("stealthScreen"),
     stealthReturnBtn: document.getElementById("stealthReturnBtn"),
     stealthInput: document.getElementById("stealthInput"),
@@ -134,6 +170,8 @@ create policy "Allow anon read/write" on public.study_sync
     settingsCloseBtn: document.getElementById("settingsCloseBtn"),
     themeDarkBtn: document.getElementById("themeDarkBtn"),
     themeLightBtn: document.getElementById("themeLightBtn"),
+    defaultViewBriefingBtn: document.getElementById("defaultViewBriefingBtn"),
+    defaultViewSessionBtn: document.getElementById("defaultViewSessionBtn"),
     defaultInvertCheckbox: document.getElementById("defaultInvertCheckbox"),
     alwaysShowAnsCheckbox: document.getElementById("alwaysShowAnsCheckbox"),
     cloudProviderSelect: document.getElementById("cloudProviderSelect"),
@@ -162,10 +200,15 @@ create policy "Allow anon read/write" on public.study_sync
 
   function normalizeState(parsed) {
     const src = parsed && typeof parsed === "object" ? parsed : {};
+    const resolvedDefaultView =
+      src.defaultTopicView === "briefing" || src.defaultTopicView === "session"
+        ? src.defaultTopicView
+        : readSavedDefaultTopicView();
     return {
       ...DEFAULT_STATE,
       ...src,
       alwaysShowAnswer: Boolean(src.alwaysShowAnswer),
+      defaultTopicView: resolvedDefaultView,
       lastPosition: src.lastPosition && typeof src.lastPosition === "object" ? src.lastPosition : null,
       topicLastQid: src.topicLastQid && typeof src.topicLastQid === "object" ? src.topicLastQid : {},
       records: src.records && typeof src.records === "object" ? src.records : {},
@@ -479,6 +522,10 @@ create policy "Allow anon read/write" on public.study_sync
     }
     el.themeDarkBtn.classList.toggle("active", state.theme !== "light");
     el.themeLightBtn.classList.toggle("active", state.theme === "light");
+    if (el.defaultViewBriefingBtn && el.defaultViewSessionBtn) {
+      el.defaultViewBriefingBtn.classList.toggle("active", state.defaultTopicView === "briefing");
+      el.defaultViewSessionBtn.classList.toggle("active", state.defaultTopicView !== "briefing");
+    }
     el.defaultInvertCheckbox.checked = Boolean(state.invertImages);
     if (el.alwaysShowAnsCheckbox) {
       el.alwaysShowAnsCheckbox.checked = Boolean(state.alwaysShowAnswer);
@@ -680,6 +727,566 @@ create policy "Allow anon read/write" on public.study_sync
       "[요청] 위 기술사 최신 트렌드 문제가 정보시스템 감리사 시험(객관식 4지선다)에 출제된다고 가정하고, 실전 감리사 스타일 4지선다 예상문제 2개와 정답 및 암기 포인트를 만들어 줘.",
       "---",
     ].join("\n");
+  }
+
+  function getTopicTheory(topicCode) {
+    if (!topicCode || !theoryData || typeof theoryData !== "object") return null;
+    const item = theoryData[topicCode];
+    if (!item || typeof item !== "object") return null;
+    if (!item.core_summary && (!Array.isArray(item.trap_patterns) || item.trap_patterns.length === 0)) {
+      return null;
+    }
+    return item;
+  }
+
+  function resolveInitialViewMode(topic, { forceSession = false } = {}) {
+    if (forceSession || !topic) return "session";
+    if (state.defaultTopicView === "briefing" && getTopicTheory(topic.topic_code)) {
+      return "briefing";
+    }
+    return "session";
+  }
+
+  function formatInlineMarkdown(str) {
+    let escaped = escapeHtml(str ?? "");
+    // Inline code first so we don't style inside code spans
+    const codeSlots = [];
+    escaped = escaped.replace(/`([^`\n]+)`/g, (_, inner) => {
+      const idx = codeSlots.length;
+      codeSlots.push(`<code class="briefing-code">${inner}</code>`);
+      return `\u0000CODE${idx}\u0000`;
+    });
+    // Bold **...**
+    escaped = escaped.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+    // Highlight exam year/round references gently (e.g., 2025년(제26회) 15번, 2024년 9번)
+    escaped = escaped.replace(
+      /(\d{4}년(?:\(제\d+회\))?\s*(?:\d+교시\s*)?\d+번(?:\s*\/\s*\d+번)?)/g,
+      '<span class="briefing-ref-pill">$1</span>'
+    );
+    // Restore code slots
+    escaped = escaped.replace(/\u0000CODE(\d+)\u0000/g, (_, idx) => codeSlots[Number(idx)] || "");
+    return escaped;
+  }
+
+  function highlightLeadIn(htmlStr) {
+    // If a bullet starts with "short label: body", emphasize the lead-in label gently
+    if (htmlStr.startsWith("<strong>") || htmlStr.startsWith("<code")) return htmlStr;
+    const m = htmlStr.match(/^([^:<>]{2,32})(:|\s=)\s+(.+)$/);
+    if (!m) return htmlStr;
+    return `<span class="briefing-lead">${m[1]}${m[2]}</span> ${m[3]}`;
+  }
+
+  function splitSubItems(bodyText) {
+    const raw = String(bodyText || "").trim();
+    if (!raw) return [];
+    // Mask inline code spans (`...`) and parenthetical remarks containing ※ so math "-" or "(※ ...)" are never split
+    const masks = [];
+    const masked = raw.replace(/`[^`\n]+`|\([^()\n]*※[^()\n]*\)/g, (m) => {
+      const idx = masks.length;
+      masks.push(m);
+      return `\u0001M${idx}\u0001`;
+    });
+
+    const normalized = masked
+      .replace(/\s+(?=[①②③④⑤⑥⑦⑧⑨]\s+)/g, "\n")
+      .replace(/\s+(?=•\s+)/g, "\n")
+      .replace(/(?:^|[.!?:])\s+(?=※\s*)/g, (m) => (m[0] === " " ? "\n" : m[0] + "\n"))
+      .replace(/([.!?])\s+(?=-\s+(?!\d))/g, "$1\n");
+
+    return normalized
+      .split(/\n+/)
+      .map((s) => s.replace(/\u0001M(\d+)\u0001/g, (_, idx) => masks[Number(idx)] || "").trim())
+      .filter(Boolean);
+  }
+
+  function renderSummaryItemsHtml(bodyText) {
+    const items = splitSubItems(bodyText);
+    if (items.length === 0) return "";
+    if (items.length === 1 && !/^[①②③④⑤⑥⑦⑧⑨•※\-]/.test(items[0])) {
+      return `<p class="briefing-card-text">${highlightLeadIn(formatInlineMarkdown(items[0]))}</p>`;
+    }
+    return `
+      <ul class="briefing-sublist">
+        ${items
+          .map((item) => {
+            if (item.startsWith("※")) {
+              const cleaned = item.replace(/^※\s*/, "");
+              return `<li class="briefing-subitem is-note"><span class="briefing-marker note">※</span><span class="briefing-subtext">${formatInlineMarkdown(cleaned)}</span></li>`;
+            }
+            const circled = item.match(/^([①②③④⑤⑥⑦⑧⑨])\s+(.+)$/);
+            if (circled) {
+              return `<li class="briefing-subitem"><span class="briefing-marker num">${circled[1]}</span><span class="briefing-subtext">${highlightLeadIn(formatInlineMarkdown(circled[2]))}</span></li>`;
+            }
+            const bulleted = item.match(/^[•\-·]\s+(.+)$/);
+            if (bulleted) {
+              return `<li class="briefing-subitem"><span class="briefing-marker dot">•</span><span class="briefing-subtext">${highlightLeadIn(formatInlineMarkdown(bulleted[1]))}</span></li>`;
+            }
+            return `<li class="briefing-subitem"><span class="briefing-marker dot">•</span><span class="briefing-subtext">${highlightLeadIn(formatInlineMarkdown(item))}</span></li>`;
+          })
+          .join("")}
+      </ul>
+    `;
+  }
+
+  function formatCoreSummaryHtml(summary) {
+    const raw = String(summary || "").trim();
+    if (!raw) return "";
+
+    // Protect inline code spans (`...`) from being split by top-level section delimiters like [guard]
+    const codeMasks = [];
+    const safeRaw = raw.replace(/`[^`\n]+`/g, (m) => {
+      const idx = codeMasks.length;
+      codeMasks.push(m);
+      return `\u0002C${idx}\u0002`;
+    });
+    const unmask = (s) => s.replace(/\u0002C(\d+)\u0002/g, (_, idx) => codeMasks[Number(idx)] || "");
+
+    let blocks = [];
+
+    // Pattern A: [Section Title] body ...
+    if (/(?:^|\s)\[[^\]\n]{2,56}\]\s+/.test(safeRaw)) {
+      const parts = safeRaw
+        .replace(/\s+(?=\[[^\]\n]{2,56}\]\s+)/g, "\n")
+        .split(/\n+/)
+        .map((s) => unmask(s).trim())
+        .filter(Boolean);
+      parts.forEach((part) => {
+        const m = part.match(/^\[([^\]\n]{2,56})\]\s+(.+)$/);
+        if (m) blocks.push({ title: m[1].trim(), body: m[2].trim() });
+        else blocks.push({ title: "", body: part });
+      });
+    }
+    // Pattern B: ■ Title: body ...
+    else if (/(?:^|\s)■\s+/.test(safeRaw)) {
+      const parts = safeRaw
+        .replace(/\s+(?=■\s+)/g, "\n")
+        .split(/\n+/)
+        .map((s) => unmask(s).replace(/^■\s*/, "").trim())
+        .filter(Boolean);
+      parts.forEach((part) => {
+        const m = part.match(/^([^:\n]{2,42}):\s+(.+)$/);
+        if (m) blocks.push({ title: m[1].trim(), body: m[2].trim() });
+        else blocks.push({ title: "", body: part });
+      });
+    }
+    // Pattern C: • **Title**: body or - **Title**: body
+    else if (/(?:^|\s)[•\-]\s+\*\*[^*\n]{2,46}\*\*\s*:/.test(safeRaw)) {
+      const parts = safeRaw
+        .replace(/\s+(?=[•\-]\s+\*\*[^*\n]{2,46}\*\*\s*:)/g, "\n")
+        .split(/\n+/)
+        .map((s) => unmask(s).replace(/^[•\-]\s+/, "").trim())
+        .filter(Boolean);
+      parts.forEach((part) => {
+        const m = part.match(/^\*\*([^*\n]{2,46})\*\*\s*:\s*(.+)$/);
+        if (m) blocks.push({ title: m[1].trim(), body: m[2].trim() });
+        else blocks.push({ title: "", body: part });
+      });
+    }
+    // Pattern D: ① Title: body ② Title: body ...
+    else if (/(?:^|\s)[①②③④⑤⑥]\s+/.test(safeRaw)) {
+      const parts = safeRaw
+        .replace(/\s+(?=[①②③④⑤⑥]\s+)/g, "\n")
+        .split(/\n+/)
+        .map((s) => unmask(s).trim())
+        .filter(Boolean);
+      parts.forEach((part) => {
+        const m = part.match(/^([①②③④⑤⑥])\s+\*\*([^*\n]{2,42})\*\*\s*[:：]?\s*(.+)$/);
+        if (m) {
+          blocks.push({ title: `${m[1]} ${m[2].trim()}`, body: m[3].trim() });
+          return;
+        }
+        const m2 = part.match(/^([①②③④⑤⑥])\s+([^:\n]{2,36}):\s+(.+)$/);
+        if (m2) {
+          blocks.push({ title: `${m2[1]} ${m2[2].trim()}`, body: m2[3].trim() });
+          return;
+        }
+        blocks.push({ title: "", body: part });
+      });
+    }
+    // Fallback: single block
+    else {
+      blocks = [{ title: "", body: raw }];
+    }
+
+    return blocks
+      .map((blk) => {
+        const titleHtml = blk.title
+          ? `<div class="briefing-card-heading">${formatInlineMarkdown(blk.title)}</div>`
+          : "";
+        return `
+          <div class="briefing-summary-card">
+            ${titleHtml}
+            ${renderSummaryItemsHtml(blk.body)}
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  function formatTableCellHtml(cellText, colIdx) {
+    const raw = String(cellText || "").trim();
+    if (!raw) return "";
+    // For readability in dense non-first columns, break cleanly on "; " when cell is long
+    if (colIdx > 0 && raw.length >= 44 && raw.includes("; ")) {
+      const pieces = raw.split(/;\s+/).map((p) => p.trim()).filter(Boolean);
+      if (pieces.length >= 2) {
+        return pieces
+          .map((p) => `<div class="briefing-cell-line">${formatInlineMarkdown(p)}</div>`)
+          .join("");
+      }
+    }
+    return formatInlineMarkdown(raw);
+  }
+
+  function formatPeAlertHtml(text) {
+    const raw = String(text || "").trim();
+    if (!raw) return "";
+    // Split multi-sentence trend alerts cleanly for scannability
+    const split = raw
+      .replace(/\s+(?=\[(?:정보관리|컴응))/g, "\n")
+      .replace(/(다\.|됨\.|습니다\.|추세\.|유력\.)\s+/g, "$1\n")
+      .split(/\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return split.map((p) => `<p class="briefing-pe-para">${formatInlineMarkdown(p)}</p>`).join("");
+  }
+
+  function renderBriefingTrapsHtml(traps) {
+    if (!Array.isArray(traps) || traps.length === 0) return "";
+    return `
+      <div class="briefing-trap-list">
+        ${traps
+          .map(
+            (t, idx) => `
+          <div class="briefing-trap-card">
+            <div class="briefing-trap-head">
+              <span class="briefing-trap-badge">함정 ${String(idx + 1).padStart(2, "0")}</span>
+              <div class="briefing-trap-pattern">${formatInlineMarkdown(t.pattern || "")}</div>
+            </div>
+            ${
+              t.example_ref
+                ? `<div class="briefing-trap-ref">
+                     <span class="briefing-trap-ref-label">기출 근거</span>
+                     <span class="briefing-trap-ref-text">${formatInlineMarkdown(t.example_ref)}</span>
+                   </div>`
+                : ""
+            }
+          </div>
+        `
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
+  function renderBriefingTableHtml(table) {
+    if (
+      !table ||
+      typeof table !== "object" ||
+      !Array.isArray(table.headers) ||
+      table.headers.length === 0 ||
+      !Array.isArray(table.rows) ||
+      table.rows.length === 0
+    ) {
+      return "";
+    }
+    const headerHtml = table.headers.map((h) => `<th>${formatInlineMarkdown(h)}</th>`).join("");
+    const rowsHtml = table.rows
+      .map(
+        (row) =>
+          `<tr>${row.map((cell, ci) => `<td>${formatTableCellHtml(cell, ci)}</td>`).join("")}</tr>`
+      )
+      .join("");
+    return `
+      ${table.title ? `<div class="briefing-table-caption">${formatInlineMarkdown(table.title)}</div>` : ""}
+      <div class="briefing-table-scroll">
+        <table class="briefing-table">
+          <thead><tr>${headerHtml}</tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function buildGeminiBriefingPrompt(subj, topic, theory) {
+    const lines = [
+      "---",
+      `[과목/토픽] ${subj.display_name} > ${topic.topic_code} ${topic.topic}`,
+      "",
+      "[1. 30초 핵심 배경]",
+      theory.core_summary || "",
+      "",
+      "[2. 단골 오답 함정 패턴]",
+      ...(theory.trap_patterns || []).map(
+        (t, idx) => `${idx + 1}. ${t.pattern}${t.example_ref ? ` (기출: ${t.example_ref})` : ""}`
+      ),
+    ];
+
+    if (
+      theory.comparison_table &&
+      Array.isArray(theory.comparison_table.headers) &&
+      Array.isArray(theory.comparison_table.rows)
+    ) {
+      lines.push("", `[3. 핵심 비교·암기표: ${theory.comparison_table.title || ""}]`);
+      lines.push(`| ${theory.comparison_table.headers.join(" | ")} |`);
+      lines.push(`| ${theory.comparison_table.headers.map(() => "---").join(" | ")} |`);
+      theory.comparison_table.rows.forEach((row) => {
+        lines.push(`| ${row.join(" | ")} |`);
+      });
+    }
+
+    if (Array.isArray(theory.cross_domain_links) && theory.cross_domain_links.length > 0) {
+      lines.push("", "[4. 타 영역 크로스오버 출제 포인트]");
+      theory.cross_domain_links.forEach((link) => lines.push(`- ${link}`));
+    }
+
+    if (theory.pe_trend_alert) {
+      lines.push("", "[5. 기술사 연계 신유형 경보]", theory.pe_trend_alert);
+    }
+
+    lines.push(
+      "",
+      "[질문 요청] 이 토픽에서 가장 헷갈리는 핵심 함정을 예시로 쉽게 설명해 줘",
+      "---"
+    );
+    return lines.join("\n");
+  }
+
+  function getTopicSessionCounts(topic) {
+    if (!topic) return { done: 0, total: 0 };
+    if (topic.is_trend) {
+      const done = (topic.pe_questions || []).filter((p) => state.trendChecked[p.id]).length;
+      return { done, total: topic.pe_count || (topic.pe_questions || []).length };
+    }
+    let done = 0;
+    (topic.gamrisa_questions || []).forEach((q) => {
+      if (state.records[q.id]?.selected != null) done += 1;
+    });
+    return { done, total: topic.gamrisa_count || (topic.gamrisa_questions || []).length };
+  }
+
+  function renderViewModeBar() {
+    if (!el.viewModeBar || !el.viewTabBriefing || !el.viewTabSession) return;
+    const topic = getActiveTopic();
+    if (!topic) {
+      el.viewModeBar.classList.add("hidden");
+      return;
+    }
+    el.viewModeBar.classList.remove("hidden");
+    const { done, total } = getTopicSessionCounts(topic);
+    if (el.viewTabSessionLabel) {
+      el.viewTabSessionLabel.textContent = `세션 (${done}/${total})`;
+    }
+    const isBriefing = activeViewMode === "briefing";
+    el.viewTabBriefing.classList.toggle("active", isBriefing);
+    el.viewTabBriefing.setAttribute("aria-selected", String(isBriefing));
+    el.viewTabSession.classList.toggle("active", !isBriefing);
+    el.viewTabSession.setAttribute("aria-selected", String(!isBriefing));
+  }
+
+  function setViewMode(mode, { scrollTop = true } = {}) {
+    const next = mode === "briefing" ? "briefing" : "session";
+    closeBriefingPeek();
+    activeViewMode = next;
+    renderMainStream();
+    if (scrollTop) el.chatStream.scrollTop = 0;
+  }
+
+  function openBriefingPeek() {
+    const topic = getActiveTopic();
+    const theory = getTopicTheory(topic?.topic_code);
+    if (!topic || !theory || !el.briefingPeekDrawer || !el.briefingPeekBackdrop) {
+      showToast("이 토픽의 브리핑 데이터가 없습니다");
+      return;
+    }
+
+    if (el.briefingPeekCode) el.briefingPeekCode.textContent = topic.topic_code;
+    if (el.briefingPeekTitle) el.briefingPeekTitle.textContent = topic.topic;
+
+    const trapsHtml = renderBriefingTrapsHtml(theory.trap_patterns);
+    const tableHtml = renderBriefingTableHtml(theory.comparison_table);
+
+    el.briefingPeekBody.innerHTML = `
+      ${
+        trapsHtml
+          ? `
+        <section class="briefing-section">
+          <h3 class="briefing-section-title">
+            <span class="briefing-section-index">01</span>
+            <span>단골 오답 함정 패턴</span>
+          </h3>
+          ${trapsHtml}
+        </section>
+      `
+          : ""
+      }
+      ${
+        tableHtml
+          ? `
+        <section class="briefing-section">
+          <h3 class="briefing-section-title">
+            <span class="briefing-section-index">02</span>
+            <span>핵심 비교·암기표</span>
+          </h3>
+          ${tableHtml}
+        </section>
+      `
+          : ""
+      }
+      ${
+        !trapsHtml && !tableHtml
+          ? `<div class="empty-state">표시할 함정·비교표 데이터가 없습니다.</div>`
+          : ""
+      }
+    `;
+
+    briefingPeekOpen = true;
+    el.briefingPeekBackdrop.classList.remove("hidden");
+    el.briefingPeekDrawer.classList.remove("hidden");
+    el.briefingPeekBody.scrollTop = 0;
+  }
+
+  function closeBriefingPeek() {
+    if (!briefingPeekOpen) return;
+    briefingPeekOpen = false;
+    if (el.briefingPeekBackdrop) el.briefingPeekBackdrop.classList.add("hidden");
+    if (el.briefingPeekDrawer) el.briefingPeekDrawer.classList.add("hidden");
+  }
+
+  function renderBriefingStream(subj, topic) {
+    const theory = getTopicTheory(topic.topic_code);
+    if (!theory) {
+      el.streamInner.innerHTML = `
+        <div class="empty-state">
+          <div>이 토픽(${escapeHtml(topic.topic_code)})의 압축 이론 브리핑 데이터가 준비되지 않았습니다.</div>
+          <button id="briefingStartSessionBtn" class="empty-state-btn" type="button">문제 풀이 세션으로 이동 →</button>
+        </div>
+      `;
+      return;
+    }
+
+    const { done, total } = getTopicSessionCounts(topic);
+    const summaryHtml = formatCoreSummaryHtml(theory.core_summary);
+    const trapsHtml = renderBriefingTrapsHtml(theory.trap_patterns);
+    const tableHtml = renderBriefingTableHtml(theory.comparison_table);
+    const linksHtml =
+      Array.isArray(theory.cross_domain_links) && theory.cross_domain_links.length > 0
+        ? `
+          <ul class="briefing-link-list">
+            ${theory.cross_domain_links
+              .map((l) => `<li class="briefing-link-item">${highlightLeadIn(formatInlineMarkdown(l))}</li>`)
+              .join("")}
+          </ul>
+        `
+        : "";
+
+    let secNum = 0;
+    const nextSec = () => String(++secNum).padStart(2, "0");
+
+    const metaLabel = topic.is_trend
+      ? `${subj.display_name} · 기술사 트렌드 ${total}건`
+      : `${subj.display_name} · 빈출 ${topic.frequency_rank}위 · 풀이 ${done}/${total} · 기술사 ${topic.pe_count}건`;
+
+    el.streamInner.innerHTML = `
+      <article class="briefing-doc" aria-label="토픽 압축 이론 브리핑">
+        <header class="briefing-header">
+          <div class="briefing-badge-row">
+            <span class="briefing-doc-tag">BRIEFING · ${escapeHtml(topic.topic_code)}</span>
+            <span>${escapeHtml(metaLabel)}</span>
+          </div>
+          <h1 class="briefing-title">${escapeHtml(theory.topic_name || topic.topic)}</h1>
+          ${topic.desc ? `<p class="briefing-subtitle">${escapeHtml(topic.desc)}</p>` : ""}
+        </header>
+
+        ${
+          summaryHtml
+            ? `
+          <section class="briefing-section">
+            <h2 class="briefing-section-title">
+              <span class="briefing-section-index">${nextSec()}</span>
+              <span>30초 핵심 배경</span>
+            </h2>
+            <div class="briefing-summary-stack">${summaryHtml}</div>
+          </section>
+        `
+            : ""
+        }
+
+        ${
+          trapsHtml
+            ? `
+          <section class="briefing-section">
+            <h2 class="briefing-section-title">
+              <span class="briefing-section-index">${nextSec()}</span>
+              <span>단골 오답 함정 패턴 (${theory.trap_patterns.length})</span>
+            </h2>
+            ${trapsHtml}
+          </section>
+        `
+            : ""
+        }
+
+        ${
+          tableHtml
+            ? `
+          <section class="briefing-section">
+            <h2 class="briefing-section-title">
+              <span class="briefing-section-index">${nextSec()}</span>
+              <span>핵심 비교·암기표</span>
+            </h2>
+            ${tableHtml}
+          </section>
+        `
+            : ""
+        }
+
+        ${
+          linksHtml
+            ? `
+          <section class="briefing-section">
+            <h2 class="briefing-section-title">
+              <span class="briefing-section-index">${nextSec()}</span>
+              <span>타 영역 크로스오버 출제 포인트</span>
+            </h2>
+            ${linksHtml}
+          </section>
+        `
+            : ""
+        }
+
+        ${
+          theory.pe_trend_alert
+            ? `
+          <section class="briefing-section">
+            <h2 class="briefing-section-title">
+              <span class="briefing-section-index">${nextSec()}</span>
+              <span>기술사 연계 신유형 경보</span>
+            </h2>
+            <details class="pe-accordion briefing-pe-alert" open>
+              <summary>
+                <span>기술사 출제 동향 기반 신규 예상 포인트</span>
+                <span>▾</span>
+              </summary>
+              <div class="briefing-pe-body">${formatPeAlertHtml(theory.pe_trend_alert)}</div>
+            </details>
+          </section>
+        `
+            : ""
+        }
+
+        <div class="briefing-footer-actions">
+          <button id="briefingStartSessionBtn" class="briefing-primary-btn" type="button">
+            <span>${topic.is_trend ? "이 토픽 트렌드 문항 보기 →" : "이 토픽 문제 바로 풀기 →"}</span>
+          </button>
+          <button id="briefingCopyGemBtn" class="briefing-secondary-btn" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>이 토픽 이론 제미니에 질문 복사</span>
+          </button>
+        </div>
+      </article>
+    `;
   }
 
   function openGemWithPrompt(promptText) {
@@ -1003,6 +1610,18 @@ create policy "Allow anon read/write" on public.study_sync
         `
         : "";
 
+    const peekBriefingBtnHtml = getTopicTheory(topic.topic_code)
+      ? `
+          <button id="peekBriefingBtn" class="action-chip-btn" type="button" title="현재 토픽 오답 함정·비교표 빠르게 보기">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            <span>브리핑 보기</span>
+          </button>
+        `
+      : "";
+
     const copyImgBtnHtml =
       q.has_image && q.image_path
         ? `
@@ -1046,6 +1665,8 @@ create policy "Allow anon read/write" on public.study_sync
           </details>
 
           <div class="ai-action-bar">
+            ${peekBriefingBtnHtml}
+
             <button id="geminiExplainBtn" class="action-chip-btn" type="button">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -1120,6 +1741,20 @@ create policy "Allow anon read/write" on public.study_sync
     const subj = getActiveSubject();
     const topic = getActiveTopic();
     if (!subj || !topic) return;
+
+    renderViewModeBar();
+
+    if (el.streamInner) {
+      el.streamInner.classList.toggle("is-briefing-mode", activeViewMode === "briefing");
+    }
+
+    if (activeViewMode === "briefing") {
+      if (el.composerBar) el.composerBar.classList.add("hidden");
+      renderBriefingStream(subj, topic);
+      return;
+    }
+
+    if (el.composerBar) el.composerBar.classList.remove("hidden");
 
     if (topic.is_trend) {
       renderTrendStream(subj, topic);
@@ -1345,9 +1980,12 @@ create policy "Allow anon read/write" on public.study_sync
   // Navigation & Actions
   function selectSubject(subjectCode) {
     if (state.activeSubjectCode === subjectCode) return;
+    closeBriefingPeek();
     state.activeSubjectCode = subjectCode;
     const subj = getActiveSubject();
-    state.activeTopicCode = subj.topics[0] ? subj.topics[0].topic_code : null;
+    const firstTopic = subj.topics[0] || null;
+    state.activeTopicCode = firstTopic ? firstTopic.topic_code : null;
+    activeViewMode = resolveInitialViewMode(firstTopic);
     currentIndex = 0;
     navigatorOpen = false;
     saveState();
@@ -1356,7 +1994,10 @@ create policy "Allow anon read/write" on public.study_sync
   }
 
   function selectTopic(topicCode, targetQid = null) {
+    closeBriefingPeek();
     state.activeTopicCode = topicCode;
+    const topic = getActiveTopic();
+    activeViewMode = resolveInitialViewMode(topic, { forceSession: Boolean(targetQid) });
     currentIndex = 0;
     navigatorOpen = false;
     saveState();
@@ -1407,9 +2048,11 @@ create policy "Allow anon read/write" on public.study_sync
       showToast("저장된 최근 학습 위치가 없습니다");
       return;
     }
+    closeBriefingPeek();
     state.activeSubjectCode = lp.subjectCode;
     state.activeTopicCode = lp.topicCode;
     state.filter = "all";
+    activeViewMode = "session";
     saveState();
     renderAll({ rebuildQueue: true, keepCurrentQid: lp.questionId || null });
     el.chatStream.scrollTop = 0;
@@ -1421,6 +2064,9 @@ create policy "Allow anon read/write" on public.study_sync
     stealthActive = force !== undefined ? Boolean(force) : !stealthActive;
     el.stealthScreen.classList.toggle("hidden", !stealthActive);
     if (stealthActive) {
+      closeBriefingPeek();
+      closeSettings();
+      closeLightbox();
       el.filterMenu.classList.add("hidden");
       setMobileSidebarOpen(false);
     }
@@ -1508,16 +2154,37 @@ create policy "Allow anon read/write" on public.study_sync
 
     // Due review shortcut
     el.dueReviewShortcutBtn.addEventListener("click", () => {
+      closeBriefingPeek();
       const subj = getActiveSubject();
       if (getActiveTopic()?.is_trend && subj.topics[0]) {
         state.activeTopicCode = subj.topics[0].topic_code;
       }
       state.filter = "review";
+      activeViewMode = "session";
       currentIndex = 0;
       saveState();
       renderAll({ rebuildQueue: true });
       if (isMobileViewport()) setMobileSidebarOpen(false);
     });
+
+    // View mode tabs (Briefing / Session)
+    if (el.viewTabBriefing) {
+      el.viewTabBriefing.addEventListener("click", () => setViewMode("briefing"));
+    }
+    if (el.viewTabSession) {
+      el.viewTabSession.addEventListener("click", () => setViewMode("session"));
+    }
+
+    // Briefing Peek Drawer controls
+    if (el.briefingPeekBackdrop) {
+      el.briefingPeekBackdrop.addEventListener("click", closeBriefingPeek);
+    }
+    if (el.briefingPeekCloseBtn) {
+      el.briefingPeekCloseBtn.addEventListener("click", closeBriefingPeek);
+    }
+    if (el.briefingPeekFullBtn) {
+      el.briefingPeekFullBtn.addEventListener("click", () => setViewMode("briefing"));
+    }
 
     // Header Filter Dropdown
     el.filterDropdownBtn.addEventListener("click", (e) => {
@@ -1532,12 +2199,14 @@ create policy "Allow anon read/write" on public.study_sync
       const sortBtn = e.target.closest("[data-sort]");
       if (filterBtn) {
         state.filter = filterBtn.dataset.filter;
+        activeViewMode = "session";
         currentIndex = 0;
         saveState();
         el.filterMenu.classList.add("hidden");
         renderAll({ rebuildQueue: true });
       } else if (sortBtn) {
         state.sort = sortBtn.dataset.sort;
+        activeViewMode = "session";
         currentIndex = 0;
         randomSeedKey = "";
         saveState();
@@ -1669,6 +2338,27 @@ create policy "Allow anon read/write" on public.study_sync
       const jumpBtn = e.target.closest("[data-jump-topic]");
       if (jumpBtn) {
         selectTopic(jumpBtn.dataset.jumpTopic);
+        return;
+      }
+
+      // Briefing view action buttons
+      if (e.target.closest("#briefingStartSessionBtn")) {
+        setViewMode("session");
+        return;
+      }
+      if (e.target.closest("#briefingCopyGemBtn") && subj && topic) {
+        const theory = getTopicTheory(topic.topic_code);
+        if (theory) {
+          openGemWithPrompt(buildGeminiBriefingPrompt(subj, topic, theory));
+        } else {
+          showToast("복사할 브리핑 데이터가 없습니다");
+        }
+        return;
+      }
+
+      // Quick briefing peek button inside AI explanation bar
+      if (e.target.closest("#peekBriefingBtn")) {
+        openBriefingPeek();
         return;
       }
 
@@ -1922,6 +2612,25 @@ create policy "Allow anon read/write" on public.study_sync
       renderAll();
     });
 
+    if (el.defaultViewBriefingBtn) {
+      el.defaultViewBriefingBtn.addEventListener("click", () => {
+        state.defaultTopicView = "briefing";
+        writeSavedDefaultTopicView("briefing");
+        saveState();
+        applyTheme();
+        showToast("토픽 선택 시 브리핑을 먼저 표시합니다");
+      });
+    }
+    if (el.defaultViewSessionBtn) {
+      el.defaultViewSessionBtn.addEventListener("click", () => {
+        state.defaultTopicView = "session";
+        writeSavedDefaultTopicView("session");
+        saveState();
+        applyTheme();
+        showToast("토픽 선택 시 바로 문제 풀이로 진입합니다");
+      });
+    }
+
     el.defaultInvertCheckbox.addEventListener("change", () => {
       state.invertImages = el.defaultInvertCheckbox.checked;
       saveState();
@@ -2021,6 +2730,7 @@ create policy "Allow anon read/write" on public.study_sync
           theme: state.theme,
           invertImages: state.invertImages,
           alwaysShowAnswer: state.alwaysShowAnswer,
+          defaultTopicView: state.defaultTopicView,
           gemUrl: state.gemUrl,
           lastPosition: state.lastPosition,
           topicLastQid: state.topicLastQid,
@@ -2057,6 +2767,10 @@ create policy "Allow anon read/write" on public.study_sync
         if (src.theme === "dark" || src.theme === "light") state.theme = src.theme;
         if (typeof src.invertImages === "boolean") state.invertImages = src.invertImages;
         if (typeof src.alwaysShowAnswer === "boolean") state.alwaysShowAnswer = src.alwaysShowAnswer;
+        if (src.defaultTopicView === "briefing" || src.defaultTopicView === "session") {
+          state.defaultTopicView = src.defaultTopicView;
+          writeSavedDefaultTopicView(src.defaultTopicView);
+        }
         if (typeof src.gemUrl === "string") state.gemUrl = src.gemUrl;
         saveState();
         renderAll({ rebuildQueue: true });
@@ -2190,23 +2904,33 @@ create policy "Allow anon read/write" on public.study_sync
       if (!el.authOverlay.classList.contains("hidden")) return;
 
       if (e.key === "Escape") {
+        const now = Date.now();
         if (!el.lightboxModal.classList.contains("hidden")) {
           closeLightbox();
-          lastEscTs = 0;
+          lastEscTs = now;
           return;
         }
         if (!el.settingsModal.classList.contains("hidden")) {
           closeSettings();
-          lastEscTs = 0;
+          lastEscTs = now;
+          return;
+        }
+        if (briefingPeekOpen) {
+          closeBriefingPeek();
+          if (now - lastEscTs <= DOUBLE_ESC_MS) {
+            lastEscTs = 0;
+            toggleStealth(true);
+          } else {
+            lastEscTs = now;
+          }
           return;
         }
         if (!el.filterMenu.classList.contains("hidden")) {
           el.filterMenu.classList.add("hidden");
-          lastEscTs = 0;
+          lastEscTs = now;
           return;
         }
 
-        const now = Date.now();
         if (now - lastEscTs <= DOUBLE_ESC_MS) {
           lastEscTs = 0;
           toggleStealth();
@@ -2220,11 +2944,22 @@ create policy "Allow anon read/write" on public.study_sync
       if (!el.lightboxModal.classList.contains("hidden")) return;
       if (!el.settingsModal.classList.contains("hidden")) return;
 
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      const activeEl = document.activeElement;
+      const tag = activeEl?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || activeEl?.isContentEditable) return;
 
       const topic = getActiveTopic();
-      if (!topic || topic.is_trend || currentQueue.length === 0) return;
+      if (!topic) return;
+
+      // Toggle Briefing <-> Session via 'T' key on PC
+      if ((e.key === "t" || e.key === "T") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        setViewMode(activeViewMode === "briefing" ? "session" : "briefing");
+        return;
+      }
+
+      if (activeViewMode !== "session" || briefingPeekOpen) return;
+      if (topic.is_trend || currentQueue.length === 0) return;
 
       if (e.key >= "1" && e.key <= "4") {
         const q = currentQueue[currentIndex];
@@ -2338,6 +3073,9 @@ create policy "Allow anon read/write" on public.study_sync
         ? state.lastPosition.questionId
         : null;
 
+    activeViewMode = resolveInitialViewMode(topic, { forceSession: Boolean(resumeQid) });
+    closeBriefingPeek();
+
     renderAll({ rebuildQueue: true, keepCurrentQid: resumeQid });
     if (state.lastPosition && state.lastPosition.yearRound) {
       showToast(
@@ -2385,9 +3123,17 @@ create policy "Allow anon read/write" on public.study_sync
     bindEvents();
 
     try {
-      const resp = await fetch("./data/study_data.json");
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      studyData = await resp.json();
+      const studyPromise = fetch("./data/study_data.json").then((resp) => {
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return resp.json();
+      });
+      const theoryPromise = fetch("./data/theory_data.json")
+        .then((resp) => (resp.ok ? resp.json() : null))
+        .catch(() => null);
+
+      const [loadedStudy, loadedTheory] = await Promise.all([studyPromise, theoryPromise]);
+      studyData = loadedStudy;
+      theoryData = loadedTheory && typeof loadedTheory === "object" ? loadedTheory : {};
 
       // 1. Check 1-tap mobile pairing link (#sync=...)
       const pairedUser = await tryPairingFromUrlHash();
