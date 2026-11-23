@@ -2878,6 +2878,9 @@ button {
 }
 
 .be-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 25;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -3250,6 +3253,9 @@ button {
 
 /* Sticky Save Footer inside Editor */
 .be-save-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -3259,6 +3265,7 @@ button {
   background: var(--bg-surface);
   border-top: 1px solid var(--border-subtle);
   border-radius: 0 0 13px 13px;
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.2);
 }
 
 .be-save-status {
