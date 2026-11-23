@@ -565,8 +565,23 @@ create policy "Allow anon read/write" on public.study_sync
       .replace(/'/g, "&#39;");
   }
 
+  function formatRichText(str) {
+    return escapeHtml(str)
+      .replace(/&lt;b&gt;([\s\S]*?)&lt;\/b&gt;/g, '<b class="q-bold">$1</b>')
+      .replace(/&lt;u class=&quot;dashed&quot;&gt;([\s\S]*?)&lt;\/u&gt;/g, '<u class="q-underline-dashed">$1</u>')
+      .replace(/&lt;u&gt;([\s\S]*?)&lt;\/u&gt;/g, '<u class="q-underline">$1</u>')
+      .replace(/&lt;i&gt;([\s\S]*?)&lt;\/i&gt;/g, '<i class="q-italic">$1</i>');
+  }
+
   function singleLine(str) {
-    return String(str ?? "").replace(/\s+/g, " ").trim();
+    return String(str ?? "")
+      .replace(/<b><u>([\s\S]*?)<\/u><\/b>/g, "[진하게·밑줄: $1]")
+      .replace(/<u class="dashed">([\s\S]*?)<\/u>/g, "[점선밑줄: $1]")
+      .replace(/<u>([\s\S]*?)<\/u>/g, "[밑줄: $1]")
+      .replace(/<i>([\s\S]*?)<\/i>/g, "[이탤릭: $1]")
+      .replace(/<b>([\s\S]*?)<\/b>/g, "[진하게: $1]")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   function copyTextWithFallback(text) {
@@ -1482,7 +1497,7 @@ create policy "Allow anon read/write" on public.study_sync
         </div>
         <div class="img-tap-hint">이미지를 탭하면 전체 화면으로 확대됩니다</div>
       `
-      : `<div class="question-body">${escapeHtml(q.question)}</div>`;
+      : `<div class="question-body">${formatRichText(q.question)}</div>`;
 
     const optionsHtml = [1, 2, 3, 4]
       .map((n) => {
@@ -1510,7 +1525,7 @@ create policy "Allow anon read/write" on public.study_sync
         return `
           <button class="option-chip ${stateCls}" type="button" data-option="${n}">
             <span class="option-num">${CIRCLED[n]}</span>
-            ${hasImg ? "" : `<span class="option-text">${escapeHtml(optText)}</span>`}
+            ${hasImg ? "" : `<span class="option-text">${formatRichText(optText)}</span>`}
             ${badgeHtml}
           </button>
         `;

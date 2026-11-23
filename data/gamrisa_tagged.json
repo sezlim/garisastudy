@@ -4776,10 +4776,10 @@
     "number": 51,
     "question": "다음의 릴레이션 R과 함수 종속을 고려해 보자. 이 릴레이션을 BCNF로 올바르게 분해한 것은?\n(다음 답항에서 밑줄은 후보키를 의미함.) R(A, B, C) 후보키: (A, B) 함수종속: (A, B)→C C→B",
     "options": {
-      "1": "R1(A, C), R2(A, B)",
-      "2": "R1(B, C), R2(B, A)",
-      "3": "R1(C, B), R2(C, A)",
-      "4": "R1(A, B, C), R2(C, B)"
+      "1": "R1(<u>A, C</u>), R2(<u>A, B</u>)",
+      "2": "R1(B, <u>C</u>), R2(<u>B, A</u>)",
+      "3": "R1(<u>C</u>, B), R2(<u>C, A</u>)",
+      "4": "R1(<u>A, B</u>, C), R2(<u>C</u>, B)"
     },
     "answer": 3,
     "has_image": false,
@@ -5167,7 +5167,7 @@
     "year_round": "2015년(제16회)",
     "subject": "데이터베이스",
     "number": 65,
-    "question": "다음은 고객(Customer)과 주문(Orders)에 관한 릴레이션이다. 밑줄 친 속성은 기본키이고, 점선 밑줄은 외래키이다. 2개의 릴레이션을 이용하여 고객의 아이디(custid), 이름(name)과 고객이 구매한 책 값(saleprice)의 총액을 구하고자 한다.\n작성된 SQL문 중 틀린 것은?\n(릴레이션) Customer(custid, name) Orders(orderid, custid, bookname, saleprice)",
+    "question": "다음은 고객(Customer)과 주문(Orders)에 관한 릴레이션이다. 밑줄 친 속성은 기본키이고, 점선 밑줄은 외래키이다. 2개의 릴레이션을 이용하여 고객의 아이디(custid), 이름(name)과 고객이 구매한 책 값(saleprice)의 총액을 구하고자 한다.\n작성된 SQL문 중 틀린 것은?\n(릴레이션)\nCustomer(<u>custid</u>, name)\nOrders(<u>orderid</u>, <u class=\"dashed\">custid</u>, bookname, saleprice)",
     "options": {
       "1": "SELECT custid, (SELECT name FROM Customer cs WHERE cs.custid = od.custid) AS name, SUM(saleprice) FROM Orders od GROUP BY od.custid;",
       "2": "SELECT cs.custid, cs.name, s FROM (SELECT custid, SUM(saleprice) s FROM Orders GROUP BY custid) od, Customer cs WHERE cs.custid = od.custid;",
@@ -5279,7 +5279,7 @@
     "year_round": "2015년(제16회)",
     "subject": "데이터베이스",
     "number": 69,
-    "question": "다음의 데이터베이스에서 ‘부양가족을 2명 이상 가진 사원의 사번(eno), 성명(ename), 부양가족 수를 검색’하는 질의를 SQL로 적절하게 표현한 것은? (단, 밑줄은 스키마에서 기본키를 의미한다.) (2개 선택) employee(eno, ename, adddress, score, dno) dependent(eno, dename, birthdate, relation)",
+    "question": "다음의 데이터베이스에서 ‘부양가족을 2명 이상 가진 사원의 사번(eno), 성명(ename), 부양가족 수를 검색’하는 질의를 SQL로 적절하게 표현한 것은? (단, 밑줄은 스키마에서 기본키를 의미한다.) (2개 선택)\nemployee(<u>eno</u>, ename, adddress, score, dno)\ndependent(<u>eno</u>, <u>dename</u>, birthdate, relation)",
     "options": {
       "1": "SELECT eno, ename, count(*) FROM employee e, dependent d WHERE e.eno = d.eno and count(*) >= 2 GROUP BY d.eno;",
       "2": "SELECT e.eno, e.ename, count(*) FROM employee e, dependent d WHERE EXISTS (SELECT * FROM dependent GROUP BY eno HAVING count(*) >= 2) GROUP BY e.eno, e.ename;",
@@ -6488,7 +6488,7 @@
     "year_round": "2015년(제16회)",
     "subject": "보안",
     "number": 112,
-    "question": "다음은 C 프로그램의 일부분이다. 진하게 표시 된 부분에는 어떤 보안 약점이 존재하는가?\nint main() { char* rPort = getenv(“rPort”); struct sockaddr_in serv_addr; int sockfd = 0; ... serv_addr.sin_port = htons(atoi(rPort)); if (connect(sockfd, &serv_addr, sizeof(serv_addr)) < 0) { exit(1); } return 0; }",
+    "question": "다음은 C 프로그램의 일부분이다. 진하게 표시 된 부분에는 어떤 보안 약점이 존재하는가?\nint main() {\n  <b><u>char* rPort = getenv(“rPort”);</u></b>\n  struct sockaddr_in serv_addr;\n  int sockfd = 0;\n  ...\n  serv_addr.sin_port = htons(atoi(rPort));\n  <b><u>if (connect(sockfd, &serv_addr, sizeof(serv_addr)) < 0)</u></b> {\n    exit(1);\n  }\n  return 0;\n}",
     "options": {
       "1": "부적절한 인가",
       "2": "포맷 스트링 삽입",
@@ -11763,7 +11763,7 @@
     "year_round": "2017년(제18회)",
     "subject": "데이터베이스",
     "number": 60,
-    "question": "EMPLOYEE(Eno, Name, DeptName, Salary) 테이블에 대해 “평균 봉급이 가장 높은 부서명(DeptName)을 검색” 하는 질의를 다음과 같이 작성한다고 할 때, 밑줄 친 부분에 들어갈 내용으로 맞는 것은?\nSELECT DeptName FROM EMPLOYEE GROUP BY DeptName ㉠ >= ㉡ (SELECT AVG(Salary) FROM EMPLOYEE ㉢ DeptName); ㉠ ㉡ ㉢",
+    "question": "EMPLOYEE(Eno, Name, DeptName, Salary) 테이블에 대해 “평균 봉급이 가장 높은 부서명(DeptName)을 검색”하는 질의를 다음과 같이 작성한다고 할 때, 밑줄 친 부분에 들어갈 내용으로 맞는 것은?\nSELECT DeptName\nFROM EMPLOYEE\nGROUP BY DeptName\n<u>　㉠　</u> >= <u>　㉡　</u> (SELECT AVG(Salary) FROM EMPLOYEE <u>　㉢　</u> DeptName);",
     "options": {
       "1": "WHERE Salary all ORDER BY",
       "2": "WHERE AVG(Salary) some GROUP BY",
@@ -25190,7 +25190,7 @@
     "year_round": "2021년(제22회)",
     "subject": "데이터베이스",
     "number": 59,
-    "question": "세 개의 릴레이션 학생(학번, 이름, 학년, 학과), 과목(과목번호, 과목이름, 학점, 학과), 등록(학번, 과목번호, 성적)에서 “모든 과목에 수강하고 있는 학생의 학번과 이름을 검색하 라”는 질의를 효율적인 관계 대수 명령어로 작성할 때 사용되는 연산으로 가장 적절하지 않은 것은? (단, 밑줄 속성은 릴레이션의 기본키를 표시한다.)",
+    "question": "세 개의 릴레이션 학생(<u>학번</u>, 이름, 학년, 학과), 과목(<u>과목번호</u>, 과목이름, 학점, 학과), 등록(<u>학번, 과목번호</u>, 성적)에서 “모든 과목에 수강하고 있는 학생의 학번과 이름을 검색하라”는 질의를 효율적인 관계 대수 명령어로 작성할 때 사용되는 연산으로 가장 적절하지 않은 것은? (단, 밑줄 속성은 릴레이션의 기본키를 표시한다.)",
     "options": {
       "1": "조인",
       "2": "차집합",
@@ -25218,7 +25218,7 @@
     "year_round": "2021년(제22회)",
     "subject": "데이터베이스",
     "number": 60,
-    "question": "학생(학번, 이름, 학과) 릴레이션에 수학과 학생이 60명, 화학과 학생이 40명, 물리과 학생이 30명, 학과가 정해지지 않은(NULL) 학생이 10명으로 구성되어 있을 때, 각각의 실행 결과 투플 수로 옳은 것은? (단, 밑줄 속성은 기본키를 표시한다.)\n가. SELECT 학과 FROM 학생;\n나. SELECT DISTINCT 학과 FROM 학생;\n다. SELECT COUNT(*) FROM 학생 GROUP BY 학과;",
+    "question": "학생(<u>학번</u>, 이름, 학과) 릴레이션에 수학과 학생이 60명, 화학과 학생이 40명, 물리과 학생이 30명, 학과가 정해지지 않은(NULL) 학생이 10명으로 구성되어 있을 때, 각각의 실행 결과 투플 수로 옳은 것은? (단, 밑줄 속성은 기본키를 표시한다.)\n가. SELECT 학과 FROM 학생;\n나. SELECT DISTINCT 학과 FROM 학생;\n다. SELECT COUNT(*) FROM 학생 GROUP BY 학과;",
     "options": {
       "1": "가 130, 나 3, 다 3",
       "2": "가 130, 나 4, 다 4",
@@ -25358,7 +25358,7 @@
     "year_round": "2021년(제22회)",
     "subject": "데이터베이스",
     "number": 65,
-    "question": "다음의 두 릴레이션 직원(EMP), 부서(DEPT)의 CREATE TABLE 문에 포함될 참조무결성 조치에 대한 설명으로 옳지 않은 것은? (단, Super_ENO는 상사 직원번호, E_DNO는 소속부 서, Mgr_ENO는 부서 관리자의 직원번호를 나타내고, 밑줄은 기본키를 표시한다.) EMP(ENO, Name, Super_ENO, E_DNO) 참조무결성제약 및 조치:\nFOREIGN KEY (Super_ENO) REFERENCES EMP(ENO) ON DELETE SET NULL ON UPDATE CASCADE FOREIGN KEY (E_DNO) REFERENCES DEPT(DNO) ON DELETE SET DEFAULT ON UPDATE CASCADE DEPT(DNO, Dname, Mgr_ENO) 참조무결성제약 및 조치:\nFOREIGN KEY (Mgr_ENO) REFERENCES EMP(ENO) ON DELETE SET DEFAULT ON UPDATE CASCADE",
+    "question": "다음의 두 릴레이션 직원(EMP), 부서(DEPT)의 CREATE TABLE 문에 포함될 참조무결성 조치에 대한 설명으로 옳지 않은 것은? (단, Super_ENO는 상사 직원번호, E_DNO는 소속부서, Mgr_ENO는 부서 관리자의 직원번호를 나타내고, 밑줄은 기본키를 표시한다.)\nEMP(<u>ENO</u>, Name, Super_ENO, E_DNO)\n참조무결성제약 및 조치:\nFOREIGN KEY (Super_ENO) REFERENCES EMP(ENO) ON DELETE SET NULL ON UPDATE CASCADE\nFOREIGN KEY (E_DNO) REFERENCES DEPT(DNO) ON DELETE SET DEFAULT ON UPDATE CASCADE\nDEPT(<u>DNO</u>, Dname, Mgr_ENO)\n참조무결성제약 및 조치:\nFOREIGN KEY (Mgr_ENO) REFERENCES EMP(ENO) ON DELETE SET DEFAULT ON UPDATE CASCADE",
     "options": {
       "1": "직원의 소속 부서가 삭제되면 해당 직원은 디폴 트 부서로 배치된다.",
       "2": "상사 직원이 삭제되면 해당 직원은 디폴트 상사에게 배치된다.",
@@ -31974,10 +31974,10 @@
     "number": 61,
     "question": "다음과 같은 함수 종속을 가진 릴레이션 R을 BCNF로 정규화한 결과로 옳은 것은? (단, 아래 지문에서 밑줄친 열은 기본키, 이탤릭체는 외래 키를 의미한다.) R(A, B, C, D) 함수종속: A→(B, C, D), B→(A, C, D), D→C",
     "options": {
-      "1": "R1(A, B, D), R2(D, C)",
-      "2": "R1(A, B, C), R2(C, D)",
-      "3": "R1(A, B, C), R2(B, D)",
-      "4": "R1(A, C, D), R2(B, A)"
+      "1": "R1(<u>A</u>, B, <i>D</i>), R2(<u>D</u>, C)",
+      "2": "R1(<u>A</u>, B, <i>C</i>), R2(<u>C</u>, D)",
+      "3": "R1(<u>A</u>, <i>B</i>, C), R2(<u>B</u>, D)",
+      "4": "R1(<u>A</u>, C, D), R2(<u>B</u>, <i>A</i>)"
     },
     "answer": 1,
     "has_image": false,
@@ -32000,7 +32000,7 @@
     "year_round": "2023년(제24회)",
     "subject": "데이터베이스",
     "number": 62,
-    "question": "다음 Sailors, Boats, Reserves 3개의 릴레이션에 서 질의 “color가 'red'인 Boat와 'green'인 Boat를 모두 reserve한 Sailor의 sname을 검색하\n라.”를 SQL로 나타낸 문장으로 옳은 것은? (단, Sailors, Boats, Reserves 릴레이션 각각의 기본 키는 sid, bid, (sid, bid)이다.) Sailors(sid, sname, rating, age) Boats(bid, bname, color) Reserves(sid, bid, day)",
+    "question": "다음 Sailors, Boats, Reserves 3개의 릴레이션에서 질의 “color가 'red'인 Boat와 'green'인 Boat를 모두 reserve한 Sailor의 sname을 검색하라.”를 SQL로 나타낸 문장으로 옳은 것은? (단, Sailors, Boats, Reserves 릴레이션 각각의 기본 키는 sid, bid, (sid, bid)이다.)\nSailors(<u>sid</u>, sname, rating, age)\nBoats(<u>bid</u>, bname, color)\nReserves(<u>sid, bid</u>, day)",
     "options": {
       "1": "SELECT S.sname FROM Sailors S, Reserves R, Boats B WHERE S.sid = R.sid AND R.bid = B.bid AND (B.color = 'red' OR B.color = 'green');",
       "2": "SELECT S.sname FROM Sailors S, Reserves R, Boats B WHERE S.sid = R.sid AND R.bid = B.bid AND (B.color = 'red' AND B.color = 'green');",
@@ -32028,7 +32028,7 @@
     "year_round": "2023년(제24회)",
     "subject": "데이터베이스",
     "number": 63,
-    "question": "다음 STUDENT(학생)와 ENROLL(수강) 릴레이션에서 “Cno가 ‘C413’인 과목을 수강한 학생의 Sname, Dept와 수강의 Grade를 검색하라.”는 질의를 SQL 로 나타낸 문장으로 옳은 것은? (단, STUDENT와 ENROLL 릴레이션 각각의 기본 키는 Sno, (Sno, Cno)이다.) STUDENT(Sno, Sname, Year, Dept) ENROLL(Sno, Cno, Grade)",
+    "question": "다음 STUDENT(학생)와 ENROLL(수강) 릴레이션에서 “Cno가 ‘C413’인 과목을 수강한 학생의 Sname, Dept와 수강의 Grade를 검색하라.”는 질의를 SQL로 나타낸 문장으로 옳은 것은? (단, STUDENT와 ENROLL 릴레이션 각각의 기본 키는 Sno, (Sno, Cno)이다.)\nSTUDENT(<u>Sno</u>, Sname, Year, Dept)\nENROLL(<u>Sno, Cno</u>, Grade)",
     "options": {
       "1": "SELECT Sname, Dept, Grade FROM STUDENT JOIN ENROLL WITH(Sno) WHERE ENROLL.Cno = 'C413';",
       "2": "SELECT Sname, Dept, Grade FROM STUDENT NATURAL JOIN ENROLL USING(Sno) WHERE ENROLL.Cno = 'C413';",
@@ -35164,7 +35164,7 @@
     "year_round": "2024년(제25회)",
     "subject": "데이터베이스",
     "number": 55,
-    "question": "세 개의 릴레이션 스키마가 고객(고객번호, 이름, 주소), 계좌(계좌번호, 지점명, 잔고), 예금자(고객 번호, 계좌번호, 계좌생성날짜)이고 각각의 기본 키는 밑줄 친 속성이라고 하자. 계좌 릴레이션의 투플이 삭제되면 해당 예금자 릴레이션의 투플도 같이 삭제되도록 하는 방법으로 옳은 것은?",
+    "question": "세 개의 릴레이션 스키마가 고객(<u>고객번호</u>, 이름, 주소), 계좌(<u>계좌번호</u>, 지점명, 잔고), 예금자(<u>고객번호</u>, <u>계좌번호</u>, 계좌생성날짜)이고 각각의 기본 키는 밑줄 친 속성이라고 하자. 계좌 릴레이션의 투플이 삭제되면 해당 예금자 릴레이션의 투플도 같이 삭제되도록 하는 방법으로 옳은 것은?",
     "options": {
       "1": "예금자 릴레이션을 생성할 때 FOREIGN KEY(계좌 번호) REFERENCES 계좌(계좌번호) ON DELETE CASCADE 명령어를 추가한다.",
       "2": "예금자 릴레이션을 생성할 때 FOREIGN KEY(계좌 번호) REFERENCES 계좌(계좌번호) IN DELETE CASCADE 명령어를 추가한다.",
@@ -35556,7 +35556,7 @@
     "year_round": "2024년(제25회)",
     "subject": "데이터베이스",
     "number": 69,
-    "question": "부서(DEPARTMENT) 개체와 직원(EMPLOYEE) 개체 사이에 1:N 소속 관계가 존재하고, 부서는 이 관계에 부분 참여하고, 직원은 이 관계에 전체 참여한 다고 하자. 즉, 부서에는 최소 0명, 최대 N명의 직원이 소속되고, 직원은 최소 1개, 최대 1개의 부서에 소속이 된다. 이러한 상황을 반영하여 부서(부서 명, 예산코드), 직원(직원번호, 이름, 이메일, 입사 일, 부서명) 테이블을 생성하려 한다고 하자. 최소 카디널리티(cardinality)를 준수하도록 하기 위한 조치로 가장 적절한 것은? (여기서, 밑줄은 기본 키, 이탤릭체는 외래 키를 의미한다.)",
+    "question": "부서(DEPARTMENT) 개체와 직원(EMPLOYEE) 개체 사이에 1:N 소속 관계가 존재하고, 부서는 이 관계에 부분 참여하고, 직원은 이 관계에 전체 참여한다고 하자. 즉, 부서에는 최소 0명, 최대 N명의 직원이 소속되고, 직원은 최소 1개, 최대 1개의 부서에 소속이 된다. 이러한 상황을 반영하여 부서(<u>부서명</u>, 예산코드), 직원(<u>직원번호</u>, 이름, 이메일, 입사일, <i>부서명</i>) 테이블을 생성하려 한다고 하자. 최소 카디널리티(cardinality)를 준수하도록 하기 위한 조치로 가장 적절한 것은? (여기서, 밑줄은 기본 키, 이탤릭체는 외래 키를 의미한다.)",
     "options": {
       "1": "전형적인 1:N 관계로 특별히 문제될 것이 없는 상황이다.",
       "2": "직원 테이블의 부서명 속성을 ‘NOT NULL’인 외 래 키로 정의한다.",
@@ -38585,7 +38585,7 @@
     "year_round": "2025년(제26회)",
     "subject": "데이터베이스",
     "number": 57,
-    "question": "다음은 고객(customer)과 주문(orders) 릴레이션이다.\n밑줄 친 속성은 기본 키를 나타낸다. 다음 중 결과가 다른 하나는 무엇인가?\ncustomer(custid, name) orders(orderid, custid, bookid, saleprice)",
+    "question": "다음은 고객(customer)과 주문(orders) 릴레이션이다.\n밑줄 친 속성은 기본 키를 나타낸다. 다음 중 결과가 다른 하나는 무엇인가?\ncustomer(<u>custid</u>, name)\norders(<u>orderid</u>, custid, bookid, saleprice)",
     "options": {
       "1": "SELECT cs.custid, cs.name, SUM(od.saleprice) total_sales FROM customer cs LEFT JOIN orders od ON cs.custid = od.custid GROUP BY cs.custid, cs.name;",
       "2": "SELECT cs.custid, cs.name, (SELECT SUM(saleprice) FROM orders od WHERE cs.custid = od.custid) total_sales FROM customer cs;",
@@ -38641,7 +38641,7 @@
     "year_round": "2025년(제26회)",
     "subject": "데이터베이스",
     "number": 59,
-    "question": "프로야구 선수(일련번호, 이름, 소속팀, 연봉) 릴레이션에 L 소속팀 선수가 10명, H 소속팀 선수가 40명, K 소속팀 선수가 30명, 소속팀이 정해지지 않은 선수가 20명으로 구성되어있을 때, 가, 나, 다의 실행 결과 카디날 리티(cardinality)로 옳은 것은?\n가. SELECT 소속팀 FROM 선수;\n나. SELECT DISTINCT 소속팀 FROM 선수;\n다. SELECT 소속팀, COUNT(*) FROM 선수 GROUP BY 소속팀 HAVING COUNT(*) >= 20 ;",
+    "question": "프로야구 선수(<u>일련번호</u>, 이름, 소속팀, 연봉) 릴레이션에 L 소속팀 선수가 10명, H 소속팀 선수가 40명, K 소속팀 선수가 30명, 소속팀이 정해지지 않은 선수가 20명으로 구성되어있을 때, 가, 나, 다의 실행 결과 카디날리티(cardinality)로 옳은 것은?\n가. SELECT 소속팀 FROM 선수;\n나. SELECT DISTINCT 소속팀 FROM 선수;\n다. SELECT 소속팀, COUNT(*) FROM 선수 GROUP BY 소속팀 HAVING COUNT(*) >= 20 ;",
     "options": {
       "1": "가: 80 나: 3 다: 2",
       "2": "가: 80 나: 3 다: 3",
@@ -38669,7 +38669,7 @@
     "year_round": "2025년(제26회)",
     "subject": "데이터베이스",
     "number": 60,
-    "question": "세 개의 릴레이션이 다음과 같다.\n배(배 번호, 배이름, 색깔), 항해사(항해사 번호, 이름, 등급), 예약(항해사 번호, 배 번호, 예약일) 각각의 기본 키는 밑줄 친 속성이라고 하자. “모든 배를 예약 받은 항해사의 항해사 번호를 검색하라.”는 질의를 관계 대수로 나타낼 때 포함되어야 할 연산자를 모두 고른 것으로 가장 적절한 것은?\n(단, 배가 몇 척인지 알 수 없다.)\n가. 합집합 나. 곱집합\n다. 차집합 라. 프로젝트",
+    "question": "세 개의 릴레이션이 다음과 같다.\n배(<u>배 번호</u>, 배이름, 색깔), 항해사(<u>항해사 번호</u>, 이름, 등급), 예약(<u>항해사 번호</u>, <u>배 번호</u>, 예약일) 각각의 기본 키는 밑줄 친 속성이라고 하자. “모든 배를 예약 받은 항해사의 항해사 번호를 검색하라.”는 질의를 관계 대수로 나타낼 때 포함되어야 할 연산자를 모두 고른 것으로 가장 적절한 것은?\n(단, 배가 몇 척인지 알 수 없다.)\n가. 합집합 나. 곱집합\n다. 차집합 라. 프로젝트",
     "options": {
       "1": "가, 나, 다",
       "2": "가, 나, 라",
@@ -42341,7 +42341,7 @@
     "year_round": "2026년(제27회)",
     "subject": "데이터베이스",
     "number": 71,
-    "question": "CAP 정리는 모든 분산 데이터 저장소가 네트워크 분할 또는 장애발생시 일관성(Consistency), 가용성 (Availability), 분할 감내(Partition Tolerance) 등 세 개의 특성 중 두 개만 동시에 보장할 수 있다는 것이다.\n네트워크가 두 개의 파티션으로 분할된 후 각 파티션에 한 개씩의 노드가 있다고 가정할 때, 다음 설명에 들어가는 ㉠, ㉡의 내용으로 옳은 것은?\n- ㉠을 보장하려면 네트워크가 분할된 후에도 시스 템이 예상대로 계속 작동해야 하므로 각 파티션에 속한 두 노드는 서로 다른 값을 읽을 수 있게 된\n다.\n- ㉡을 보장하려면 두 개의 파티션 중에서 한 파티 션은 사용할 수 없는 것처럼 작동해야 한다.\n㉠ ㉡",
+    "question": "CAP 정리는 모든 분산 데이터 저장소가 네트워크 분할 또는 장애발생시 일관성(<u>C</u>onsistency), 가용성(<u>A</u>vailability), 분할 감내(<u>P</u>artition Tolerance) 등 세 개의 특성 중 두 개만 동시에 보장할 수 있다는 것이다.\n네트워크가 두 개의 파티션으로 분할된 후 각 파티션에 한 개씩의 노드가 있다고 가정할 때, 다음 설명에 들어가는 ㉠, ㉡의 내용으로 옳은 것은?\n- ㉠을 보장하려면 네트워크가 분할된 후에도 시스템이 예상대로 계속 작동해야 하므로 각 파티션에 속한 두 노드는 서로 다른 값을 읽을 수 있게 된다.\n- ㉡을 보장하려면 두 개의 파티션 중에서 한 파티션은 사용할 수 없는 것처럼 작동해야 한다.",
     "options": {
       "1": "가용성 + 분할감내 일관성 + 분할감내",
       "2": "가용성 + 분할감내 일관성 + 가용성",
