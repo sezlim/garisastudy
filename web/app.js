@@ -570,7 +570,10 @@ create policy "Allow anon read/write" on public.study_sync
       .replace(/&lt;b&gt;([\s\S]*?)&lt;\/b&gt;/g, '<b class="q-bold">$1</b>')
       .replace(/&lt;u class=&quot;dashed&quot;&gt;([\s\S]*?)&lt;\/u&gt;/g, '<u class="q-underline-dashed">$1</u>')
       .replace(/&lt;u&gt;([\s\S]*?)&lt;\/u&gt;/g, '<u class="q-underline">$1</u>')
-      .replace(/&lt;i&gt;([\s\S]*?)&lt;\/i&gt;/g, '<i class="q-italic">$1</i>');
+      .replace(/&lt;i&gt;([\s\S]*?)&lt;\/i&gt;/g, '<i class="q-italic">$1</i>')
+      .replace(/&lt;sup&gt;([\s\S]*?)&lt;\/sup&gt;/g, '<sup class="q-sup">$1</sup>')
+      .replace(/&lt;sub&gt;([\s\S]*?)&lt;\/sub&gt;/g, '<sub class="q-sub">$1</sub>')
+      .replace(/&lt;span class=&quot;overline&quot;&gt;([\s\S]*?)&lt;\/span&gt;/g, '<span class="q-overline">$1</span>');
   }
 
   function singleLine(str) {
@@ -580,6 +583,9 @@ create policy "Allow anon read/write" on public.study_sync
       .replace(/<u>([\s\S]*?)<\/u>/g, "[밑줄: $1]")
       .replace(/<i>([\s\S]*?)<\/i>/g, "[이탤릭: $1]")
       .replace(/<b>([\s\S]*?)<\/b>/g, "[진하게: $1]")
+      .replace(/<sup>([\s\S]*?)<\/sup>/g, (_, m) => (m.length === 1 ? `^${m}` : `^(${m})`))
+      .replace(/<sub>([\s\S]*?)<\/sub>/g, (_, m) => (m.length === 1 ? `_${m}` : `_(${m})`))
+      .replace(/<span class="overline">([\s\S]*?)<\/span>/g, "NOT($1)")
       .replace(/\s+/g, " ")
       .trim();
   }

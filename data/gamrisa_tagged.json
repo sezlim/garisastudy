@@ -649,7 +649,7 @@
     "year_round": "2014년(제15회)",
     "subject": "감리 및 사업관리",
     "number": 24,
-    "question": "프로젝트 수행 시 위험에 대한 대응방법의 효율성을 평가하기 위해 가장 널리 쓰이는 방법은 위험 감소 리버리지(RRL: Risk Reduction Leverage)를 계산하는 것이다.\nRRL = (REbefore - REafter) / 위험감소비용 ※ REbefore : 원래의 위험 노출값 REafter : 조치를 취한 후의 기대 위험 노출값 RRL이 화폐단위를 이용하여 계산되었을 경우 다음 설명 중 적절한 것은? (2개 선택)",
+    "question": "프로젝트 수행 시 위험에 대한 대응방법의 효율성을 평가하기 위해 가장 널리 쓰이는 방법은 위험 감소 리버리지(RRL: Risk Reduction Leverage)를 계산하는 것이다.\nRRL = (RE<sub>before</sub> - RE<sub>after</sub>) / 위험감소비용\n※ RE<sub>before</sub> : 원래의 위험 노출값\n   RE<sub>after</sub> : 조치를 취한 후의 기대 위험 노출값\nRRL이 화폐단위를 이용하여 계산되었을 경우 다음 설명 중 적절한 것은? (2개 선택)",
     "options": {
       "1": "RRL이 1보다 크면 비용-비효과적이다.",
       "2": "RRL이 1보다 크면 비용-효과적이다.",
@@ -706,7 +706,7 @@
     "year_round": "2014년(제15회)",
     "subject": "소프트웨어 공학",
     "number": 26,
-    "question": "다음은 Java 언어의 DivideByZero 예외처리를 다루는 소스 코드이다. 정의된 함수를 processing(10,2)로 호출하였을 경우, 화면에 출력되는 값으로 가장 적절한 것은?\nvoid processing(int a, int b) { try { System.out.print(a/b +“ ”); } catch ( ArithmeticException e1) { System.out.print(“DivideByZero ”); } catch ( Exception e2) { System.out.print(“Exception ”); } finally { System.out.print(“Done ”); } }",
+    "question": "다음은 Java 언어의 DivideByZero 예외처리를 다루는 소스 코드이다. 정의된 함수를 processing(10,2)로 호출하였을 경우, 화면에 출력되는 값으로 가장 적절한 것은?\nvoid processing(int a, int b)\n{\n  try {\n    System.out.print(a/b + “ ”);\n  } catch (ArithmeticException e1) {\n    System.out.print(“DivideByZero ”);\n  } catch (Exception e2) {\n    System.out.print(“Exception ”);\n  } finally {\n    System.out.print(“Done ”);\n  }\n}",
     "options": {
       "1": "5 DivideByZero",
       "2": "5 DivideByZero Exception Done",
@@ -734,7 +734,7 @@
     "year_round": "2014년(제15회)",
     "subject": "소프트웨어 공학",
     "number": 27,
-    "question": "다음은 C 언어로 작성된 int recur_compute(int num) 재귀함수의 소스 코드이다. 이 재귀함수를 실인자 5로 호출한 recur_compute(5)의 수행결과로 가장 적절한 것은?\nint recur_compute(int num) { int sum = 0; if (num <= 1 ) return 1; sum = num + recur_compute(num-1); return sum / 2; }",
+    "question": "다음은 C 언어로 작성된 int recur_compute(int num) 재귀함수의 소스 코드이다. 이 재귀함수를 실인자 5로 호출한 recur_compute(5)의 수행결과로 가장 적절한 것은?\nint recur_compute(int num)\n{\n  int sum = 0;\n  if (num <= 1)\n    return 1;\n  sum = num + recur_compute(num-1);\n  return sum / 2;\n}",
     "options": {
       "1": "1",
       "2": "2",
@@ -959,7 +959,7 @@
     "year_round": "2014년(제15회)",
     "subject": "소프트웨어 공학",
     "number": 35,
-    "question": "다음의 코드에서 사용되고 있는 디자인 패턴으로 가장 적절한 것은?\nclass S { public void foo() { f1() ; if ( f2() ) f3() ; f4() ; } private void f1() { ... } private void f4() { ... } protected abstract boolean f2() ; protected abstract void f3() ; } class C extends S { protected boolean f2() { ... } protected void f3() { ... } }",
+    "question": "다음의 코드에서 사용되고 있는 디자인 패턴으로 가장 적절한 것은?\nclass S {\n  public void foo() {\n    f1();\n    if (f2()) f3();\n    f4();\n  }\n  private void f1() { ... }\n  private void f4() { ... }\n  protected abstract boolean f2();\n  protected abstract void f3();\n}\nclass C extends S {\n  protected boolean f2() { ... }\n  protected void f3() { ... }\n}",
     "options": {
       "1": "팩토리 메소드(Factory Method) 패턴",
       "2": "스트래티지(Strategy) 패턴",
@@ -987,7 +987,7 @@
     "year_round": "2014년(제15회)",
     "subject": "소프트웨어 공학",
     "number": 36,
-    "question": "다음의 UML 시퀀스 다이어그램을 통해서 표현된 f0() 함수의 순환 복잡도(Cyclomatic Complexity)로 가장 적절한 것은?\nObject1 Object2 Object3 f0() f1() loop f2() break [y > 10] f3() loop f2()",
+    "question": "다음의 UML 시퀀스 다이어그램을 통해서 표현된 f0() 함수의 순환 복잡도(Cyclomatic Complexity)로 가장 적절한 것은?\n[UML 시퀀스 다이어그램 구조 (원본 PDF 선 누락)]\n참여 객체: Object1  |  Object2  |  Object3\nf0() 호출 흐름:\n  f1()\n  loop\n    f2()\n    break [y > 10]\n      f3()\n  loop\n    f2()",
     "options": {
       "1": "3",
       "2": "4",
@@ -1211,7 +1211,7 @@
     "year_round": "2014년(제15회)",
     "subject": "소프트웨어 공학",
     "number": 44,
-    "question": "다음 C 프로그램에 대하여, 조건/결정 커버리지 (condition/decision coverage)를 100% 만족하기 위한 테스트 데이터 집합으로 가장 적절한 것은?\n(단, short-circuit evaluation은 수행하지 않음) void foo(int x, int y) { if (x < 50 || y >= 30) printf(“%d\\n”, x + y); else printf(“%d\\n”, x – y); }",
+    "question": "다음 C 프로그램에 대하여, 조건/결정 커버리지(condition/decision coverage)를 100% 만족하기 위한 테스트 데이터 집합으로 가장 적절한 것은? (단, short-circuit evaluation은 수행하지 않음)\nvoid foo(int x, int y) {\n  if (x < 50 || y >= 30)\n    printf(“%d\\n”, x + y);\n  else\n    printf(“%d\\n”, x - y);\n}",
     "options": {
       "1": "{<x = 0, y = 10>, <x = 5, y = 20>}",
       "2": "{<x = 0, y = 40>, <x = 5, y = 60>}",
@@ -1351,7 +1351,7 @@
     "year_round": "2014년(제15회)",
     "subject": "소프트웨어 공학",
     "number": 49,
-    "question": "다음과 같은 C 프로그램이 주어졌을 때, 모듈 abc와 모듈 def 간의 결합도와 모듈 def의 응집도를 가장 적절하게 나타낸 것은?\nvoid abc(void) { int a, b, in; int res; scanf(\"%d %d %d\", &a, &b, &in); res = def(a, b, in); printf(\"result = %d\\n\", res); } int def(int x, int y, int v) { if(v > 0) { return(x+y); } else { return(x-y); } }",
+    "question": "다음과 같은 C 프로그램이 주어졌을 때, 모듈 abc와 모듈 def 간의 결합도와 모듈 def의 응집도를 가장 적절하게 나타낸 것은?\nvoid abc(void) {\n  int a, b, in;\n  int res;\n  scanf(\"%d %d %d\", &a, &b, &in);\n  res = def(a, b, in);\n  printf(\"result = %d\\n\", res);\n}\n\nint def(int x, int y, int v) {\n  if (v > 0) {\n    return(x+y);\n  } else {\n    return(x-y);\n  }\n}",
     "options": {
       "1": "자료 결합도(data coupling), 교환적 응집도(communication cohesion)",
       "2": "공통 결합도(common coupling), 절차적 응집도(procedural cohesion)",
@@ -1549,10 +1549,10 @@
     "number": 56,
     "question": "다음은 두 릴레이션 R과 S의 스키마와 이의 속성 (attribute)에 대한 설명을 나타낸다. 릴레이션 R과 S를 사용하여 “잔액이 $100 이상인 계좌의 전화번호를 알아내라”를 관계 대수(relational algebra)로 표현할 때 적합하지 않은 것은?\nR = (accno, bal), S = (accno, telno, zip) 릴레이션 R과 S에서, accno는 계좌번호를, bal은 잔액을, telno은 전화번호를, zip은 우편번호를 각각 나타낸다. 그리고 accno는 R과 S 각각의 키(key)이다.",
     "options": {
-      "1": "∧   ≥ × ",
-      "2": " ≥   × ",
-      "3": "  ∧ ≥ × ",
-      "4": "   ≥ × "
+      "1": "π<sub>telno ∧ R.accno = S.accno</sub>(σ<sub>bal ≥ 100</sub>(R × S))",
+      "2": "π<sub>telno</sub>(σ<sub>bal ≥ 100</sub>(σ<sub>R.accno = S.accno</sub>(R × S)))",
+      "3": "π<sub>telno</sub>(σ<sub>R.accno = S.accno ∧ bal ≥ 100</sub>(R × S))",
+      "4": "π<sub>telno</sub>(σ<sub>R.accno = S.accno</sub>(σ<sub>bal ≥ 100</sub>(R × S)))"
     },
     "answer": 1,
     "has_image": false,
@@ -1575,12 +1575,12 @@
     "year_round": "2014년(제15회)",
     "subject": "데이터베이스",
     "number": 57,
-    "question": "다음은 트랜잭션 T1과 T2에 들어있는 두 개의 연속적인 명령어 I1과 I2로 구성된 스케줄의 예들이다. 이 때 A와 B는 서로 다른 데이터 항목이다.\n이들 중 충돌 직렬성(conflict serializability)을 유지하면서 이 스케줄의 실행 순서를 바꿀 수 있는 경우로 바르지 않은 것은?",
+    "question": "다음은 트랜잭션 T<sub>1</sub>과 T<sub>2</sub>에 들어있는 두 개의 연속적인 명령어 I<sub>1</sub>과 I<sub>2</sub>로 구성된 스케줄의 예들이다. 이 때 A와 B는 서로 다른 데이터 항목이다. 이들 중 충돌 직렬성(conflict serializability)을 유지하면서 이 스케줄의 실행 순서를 바꿀 수 있는 경우로 바르지 않은 것은?",
     "options": {
-      "1": "T1의 I1=read(A)와 T2의 I2=read(A)는 순서를 바꿀 수 있다.",
-      "2": "T1의 I1=write(A)와 T2의 I2=read(A)는 순서를 바꿀 수 있다.",
-      "3": "T1의 I1=write(B)와 T2의 I2=write(A)는 순서를 바꿀 수 있다.",
-      "4": "T1의 I1=write(B)와 T2의 I2=read(A)는 순서를 바꿀 수 있다."
+      "1": "T<sub>1</sub>의 I<sub>1</sub>=read(A)와 T<sub>2</sub>의 I<sub>2</sub>=read(A)는 순서를 바꿀 수 있다.",
+      "2": "T<sub>1</sub>의 I<sub>1</sub>=write(A)와 T<sub>2</sub>의 I<sub>2</sub>=read(A)는 순서를 바꿀 수 있다.",
+      "3": "T<sub>1</sub>의 I<sub>1</sub>=write(B)와 T<sub>2</sub>의 I<sub>2</sub>=write(A)는 순서를 바꿀 수 있다.",
+      "4": "T<sub>1</sub>의 I<sub>1</sub>=write(B)와 T<sub>2</sub>의 I<sub>2</sub>=read(A)는 순서를 바꿀 수 있다."
     },
     "answer": 2,
     "has_image": false,
@@ -1603,12 +1603,12 @@
     "year_round": "2014년(제15회)",
     "subject": "데이터베이스",
     "number": 58,
-    "question": "데이터 마이닝에서는 두 점 혹은 두 시퀀스에 대한 다양한 거리 척도가 사용된다. 5-차원 공간의 두 점 X = (5, 4, 2, 6, 1), Y = (4, 5, 5, 4, 2)에 대해, X와 Y의 유클리드 거리(Euclid distance)를 dE(X,Y), X와 Y의 맨하탄 거리(Manhattan distance 혹은 city block distance)를 dM(X,Y)라 할 때, dE(X,Y)와 dM(X,Y)의 값으로 바른 것은?",
+    "question": "데이터 마이닝에서는 두 점 혹은 두 시퀀스에 대한 다양한 거리 척도가 사용된다. 5-차원 공간의 두 점 X = (5, 4, 2, 6, 1), Y = (4, 5, 5, 4, 2)에 대해, X와 Y의 유클리드 거리(Euclid distance)를 d<sub>E</sub>(X, Y), X와 Y의 맨하탄 거리(Manhattan distance 혹은 city block distance)를 d<sub>M</sub>(X, Y)라 할 때, d<sub>E</sub>(X, Y)와 d<sub>M</sub>(X, Y)의 값으로 바른 것은?",
     "options": {
-      "1": "dE(X,Y) = 8, dM(X,Y) = 4",
-      "2": "dE(X,Y) = 4, dM(X,Y) = 16",
-      "3": "dE(X,Y) = 8, dM(X,Y) = 16",
-      "4": "dE(X,Y) = 4, dM(X,Y) = 8"
+      "1": "d<sub>E</sub>(X, Y) = 8, d<sub>M</sub>(X, Y) = 4",
+      "2": "d<sub>E</sub>(X, Y) = 4, d<sub>M</sub>(X, Y) = 16",
+      "3": "d<sub>E</sub>(X, Y) = 8, d<sub>M</sub>(X, Y) = 16",
+      "4": "d<sub>E</sub>(X, Y) = 4, d<sub>M</sub>(X, Y) = 8"
     },
     "answer": 4,
     "has_image": false,
@@ -1864,8 +1864,8 @@
       "4": "m/(n1+n2-m)"
     },
     "answer": 3,
-    "has_image": false,
-    "image_path": null,
+    "has_image": true,
+    "image_path": "web/assets/images/gamrisa_2014_15_067.png",
     "subject_code": "03_수_데이터베이스",
     "topic_code": "03-18",
     "topic": "연관규칙·순차패턴 마이닝(Apriori)",
@@ -1912,7 +1912,7 @@
     "year_round": "2014년(제15회)",
     "subject": "데이터베이스",
     "number": 69,
-    "question": "account(cust_name, branch_name, balance) 릴레 이션에 대해 트랜잭션 T1, T2가 동시성 제어(concurrency control)를 하지 않고 동시에 수행될 때, 어떤 문제가 발생되는가?\nT1 시간 T2 UPDATE account SET balance = balance-1000 WHERE cust_name = ‘Gildong’; SELECT AVG(balance) FROM account; ROLLBACK; COMMIT;",
+    "question": "account(cust_name, branch_name, balance) 릴레이션에 대해 트랜잭션 T<sub>1</sub>, T<sub>2</sub>가 동시성 제어(concurrency control)를 하지 않고 동시에 수행될 때, 어떤 문제가 발생되는가?\n[시간 흐름에 따른 T<sub>1</sub>, T<sub>2</sub> 실행 순서]\n① [T<sub>1</sub>] UPDATE account\n        SET balance = balance-1000\n        WHERE cust_name = ‘Gildong’;\n② [T<sub>2</sub>] SELECT AVG(balance)\n        FROM account;\n③ [T<sub>1</sub>] ROLLBACK;\n④ [T<sub>2</sub>] COMMIT;",
     "options": {
       "1": "오손 데이터 읽기(dirty read)",
       "2": "갱신 손실(lost update)",
@@ -1948,8 +1948,8 @@
       "4": "Employees(ssn, name, lot), Dependents(pname, age, cost, ssn)"
     },
     "answer": 4,
-    "has_image": false,
-    "image_path": null,
+    "has_image": true,
+    "image_path": "web/assets/images/gamrisa_2014_15_070.png",
     "subject_code": "03_수_데이터베이스",
     "topic_code": "03-02",
     "topic": "ER/EER 모델링 및 릴레이션 사상",
@@ -3174,7 +3174,7 @@
     "year_round": "2014년(제15회)",
     "subject": "보안",
     "number": 114,
-    "question": "아래의 코드는 어떤 소프트웨어 보안약점 유형에 대한 보안대책으로 작성된 것인가?\n<% String input = request.getParameter(“input”); if (input != null) { input = input.replaceAll(“<”, “&lt;”); input = input.replaceAll(“>”, “&gt;”); input = input.replaceAll(“&”, “&amp;”); input = input.replaceAll(““””, “&quot;”); input = input.replaceAll(“””, “&#x27;”); input = input.replaceAll(“/”, “&#x2F;”); } else { input = “”; } %>",
+    "question": "아래의 코드는 어떤 소프트웨어 보안약점 유형에 대한 보안대책으로 작성된 것인가?\n<%\n  String input = request.getParameter(\"input\");\n  if (input != null) {\n    input = input.replaceAll(\"<\", \"&lt;\");\n    input = input.replaceAll(\">\", \"&gt;\");\n    input = input.replaceAll(\"&\", \"&amp;\");\n    input = input.replaceAll(\"\\\"\", \"&quot;\");\n    input = input.replaceAll(\"'\", \"&#x27;\");\n    input = input.replaceAll(\"/\", \"&#x2F;\");\n  } else { input = \"\"; }\n%>",
     "options": {
       "1": "SQL 삽입",
       "2": "경로 조작 및 자원 삽입",
@@ -4127,7 +4127,7 @@
     "year_round": "2015년(제16회)",
     "subject": "소프트웨어 공학",
     "number": 28,
-    "question": "JUnit 4.0으로 자바 프로그램을 단위 시험하기 위해 테스트 케이스를 다음과 같이 작성하였을 때, 테스트 케이스 메소드들의 수행순서로 가장 적절한 것은?\npublic class SimpleTest { @Before public void setUp() { } @After public void tearDown() { } @Test public void test1() { } @Test public void test2() { } }",
+    "question": "JUnit 4.0으로 자바 프로그램을 단위 시험하기 위해 테스트 케이스를 다음과 같이 작성하였을 때, 테스트 케이스 메소드들의 수행순서로 가장 적절한 것은?\npublic class SimpleTest {\n  @Before\n  public void setUp() { }\n  @After\n  public void tearDown() { }\n  @Test\n  public void test1() { }\n  @Test\n  public void test2() { }\n}",
     "options": {
       "1": "setUp() --> tearDown() --> test1() --> test2()",
       "2": "setUp() --> test1() --> test2() --> tearDown()",
@@ -4410,7 +4410,7 @@
     "year_round": "2015년(제16회)",
     "subject": "소프트웨어 공학",
     "number": 38,
-    "question": "다음과 같은 Java 코드를 클래스 다이어그램으로 표현하고자 한다. 생성된 클래스 다이어그램에 표현되는 객체 사이의 관계와 가장 거리가 먼 것은?\npublic TempServiceImpl extends TempService { private TempDao tempDao; public void addTemp(Temp tmp) { tempDao.add(tmp); } }",
+    "question": "다음과 같은 Java 코드를 클래스 다이어그램으로 표현하고자 한다. 생성된 클래스 다이어그램에 표현되는 객체 사이의 관계와 가장 거리가 먼 것은?\npublic TempServiceImpl extends TempService {\n  private TempDao tempDao;\n  public void addTemp(Temp tmp) {\n    tempDao.add(tmp);\n  }\n}",
     "options": {
       "1": "연관 (association) 관계",
       "2": "의존 (dependency) 관계",
@@ -4636,10 +4636,10 @@
     "number": 46,
     "question": "10만 라인에 해당하는 인터넷 쇼핑몰 개발 프로젝트(A), 새로운 언어의 컴파일러 개발 프로젝트(B), 미사일 유도시스템 개발 프로젝트(C), 데이터베이스 관리시스템(DBMS) 개발 프로젝트 (D)가 있다고 가정할 때, 보엠(Boehm)의 연산 방식을 이용한 비용 추정방식(COCOMO)에 의거 각각의 개발노력(PM)의 계산식으로 가장 적절한 것은?",
     "options": {
-      "1": "PM(A) = 2.4 × 1001.051.051.05",
-      "2": "PM(B) = 2.4 × 1001.121.121.12",
-      "3": "PM(C) = 3.0 × 1001.121.121.12",
-      "4": "PM(B) = 3.0 × 1001.201.201.20"
+      "1": "PM(A) = 2.4 × 100<sup>1.05</sup>",
+      "2": "PM(B) = 2.4 × 100<sup>1.12</sup>",
+      "3": "PM(C) = 3.0 × 100<sup>1.12</sup>",
+      "4": "PM(B) = 3.0 × 100<sup>1.20</sup>"
     },
     "answer": 1,
     "has_image": false,
@@ -4830,7 +4830,7 @@
     "year_round": "2015년(제16회)",
     "subject": "데이터베이스",
     "number": 53,
-    "question": "다음 스케줄에 대한 설명으로 옳은 것은? (트랜잭션 연산 앞의 표기는 시간을 시:분:초로 표시한 것임) 01:00:01 T1 read(x) 01:00:02 T2 write(x) 01:00:03 T1 write(x) 01:00:04 T3 write(x)",
+    "question": "다음 스케줄에 대한 설명으로 옳은 것은? (트랜잭션 연산 앞의 표기는 시간을 시:분:초로 표시한 것임)\n01:00:01  T1 read(x)\n01:00:02  T2 write(x)\n01:00:03  T1 write(x)\n01:00:04  T3 write(x)",
     "options": {
       "1": "충돌 직렬가능과 뷰 직렬가능을 모두 만족하는 스케줄이다.",
       "2": "충돌 직렬가능은 만족하고 뷰 직렬가능은 만족하지 않는 스케줄이다.",
@@ -5032,7 +5032,7 @@
       "1": "0.1003 (= 0.3010 / 3)",
       "2": "9.9668 (= 3 / 0.3010)",
       "3": "0.9030 (= 3 × 0.3010)",
-      "4": "1.6459 (= 3 ×  )"
+      "4": "1.6459 (= 3 × √0.3010)"
     },
     "answer": 3,
     "has_image": false,
@@ -5085,10 +5085,10 @@
     "number": 62,
     "question": "규칙 기반 분류기(rule-based classifier)를 사용하여 다음의 훈련 집합으로부터 \"(Marital Status = Single) → No\"라는 규칙 r을 찾았다. 이 때, 이 규칙 r의 적용범위 Coverage(r)과 정확성 Accuracy(r)로 옳은 것은?\nTID Marital Status Taxable Income Class 1 Single 125K No 2 Married 100K No 3 Single 70K No 4 Married 120K No 5 Divorced 95K Yes 6 Married 60K No 7 Divorced 220K No 8 Single 85K Yes 9 Married 75K No 10 Single 90K Yes",
     "options": {
-      "1": "Coverage(r) =  , Accuracy(r) = ",
-      "2": "Coverage(r) = , Accuracy(r) = ",
-      "3": "Coverage(r) =  , Accuracy(r) = ",
-      "4": "Coverage(r) =  , Accuracy(r) = "
+      "1": "Coverage(r) = 2/5, Accuracy(r) = 1/2",
+      "2": "Coverage(r) = 2/5, Accuracy(r) = 2/5",
+      "3": "Coverage(r) = 7/10, Accuracy(r) = 2/7",
+      "4": "Coverage(r) = 2/7, Accuracy(r) = 7/10"
     },
     "answer": 1,
     "has_image": true,
@@ -5195,7 +5195,7 @@
     "year_round": "2015년(제16회)",
     "subject": "데이터베이스",
     "number": 66,
-    "question": "다음 그림은 트랜잭션들을 병행 수행시킨 후 로그의 기록이다. 데이터베이스 시스템 수행 중 시스템에 이상이 생겼다. 이상이 생긴 후 로그의 기록을 살펴보니 다음과 같았다. 로그는 데이터 베이스의 변경에 대한 기록으로 즉시 변경(immediate update) 방법을 사용한다. 이 상태에서 복구를하고자 한다. 로그의 <T,DI,v1,v2>는 순서대로\n<트랜잭션 이름, 데이터 항목, 변경전 값, 변경후 값>을 나타낸다. 트랜잭션들의 복구 후 데이터 값에 대한 내용 중 틀린 것은?\n<start, T1>\n<T1, D, 20, 30>\n<commit, T1>\n<checkpoint>\n<start, T2>\n<T2, C, 12, 13>\n<start, T4>\n<T4, B, 15, 16>\n<start, T3>\n<T3, D, 30, 31>\n<T4, A, 20, 21>\n<commit, T4> *system crash*",
+    "question": "다음 그림은 트랜잭션들을 병행 수행시킨 후 로그의 기록이다. 데이터베이스 시스템 수행 중 시스템에 이상이 생겼다. 이상이 생긴 후 로그의 기록을 살펴보니 다음과 같았다. 로그는 데이터베이스의 변경에 대한 기록으로 즉시 변경(immediate update) 방법을 사용한다. 이 상태에서 복구를 하고자 한다. 로그의 <T, DI, v1, v2>는 순서대로 <트랜잭션 이름, 데이터 항목, 변경전 값, 변경후 값>을 나타낸다. 트랜잭션들의 복구 후 데이터 값에 대한 내용 중 틀린 것은?\n<start, T1>\n<T1, D, 20, 30>\n<commit, T1>\n<checkpoint>\n<start, T2>\n<T2, C, 12, 13>\n<start, T4>\n<T4, B, 15, 16>\n<start, T3>\n<T3, D, 30, 31>\n<T4, A, 20, 21>\n<commit, T4>\n*system crash*",
     "options": {
       "1": "A: 21",
       "2": "B: 16",
@@ -7584,7 +7584,7 @@
     "year_round": "2016년(제17회)",
     "subject": "소프트웨어 공학",
     "number": 31,
-    "question": "다음 코드를 수행할 때, 수행 결과로 가장 적절한 것은?\nclass Temp { private static Temp t; private int m = 0; public Temp() { } public static Temp getTemp() { if (t == null) t = new Temp(); return t; } public int add(int i) { m += i; return m; } } public class TempTest { public static void main(String[] args) { Temp obj1 = new Temp(); Temp obj2 = new Temp(); System.out.print(obj1.add(5) + “ ”); System.out.print(obj2.add(5) + “ ”); Temp obj3 = Temp.getTemp(); Temp obj4 = Temp.getTemp(); System.out.print(obj3.add(5) + “ ”); System.out.println(obj4.add(5)); } }",
+    "question": "다음 코드를 수행할 때, 수행 결과로 가장 적절한 것은?\nclass Temp {\n  private static Temp t;\n  private int m = 0;\n  public Temp() { }\n  public static Temp getTemp() {\n    if (t == null) t = new Temp();\n    return t;\n  }\n  public int add(int i) {\n    m += i;\n    return m;\n  }\n}\npublic class TempTest {\n  public static void main(String[] args) {\n    Temp obj1 = new Temp();\n    Temp obj2 = new Temp();\n    System.out.print(obj1.add(5) + \" \");\n    System.out.print(obj2.add(5) + \" \");\n    Temp obj3 = Temp.getTemp();\n    Temp obj4 = Temp.getTemp();\n    System.out.print(obj3.add(5) + \" \");\n    System.out.println(obj4.add(5));\n  }\n}",
     "options": {
       "1": "5 5 5 5",
       "2": "5 5 5 10",
@@ -7640,12 +7640,12 @@
     "year_round": "2016년(제17회)",
     "subject": "소프트웨어 공학",
     "number": 33,
-    "question": "다음 코드를 수행할 때, 수행 결과로 가장 적절한 것은?\nclass Parent { public Parent(){ System.out.println(\"Parent default\"); } public Parent(int i){ this(\"hello\"); System.out.println(\"int constructor \" + i); } public Parent(char c){ this(); System.out.println(\"char constructor \" + c); } public Parent(String s){ this('A'); System.out.println(\"String constructor \" + s); } } class Child extends Parent{ public Child() { super(10); System.out.println(\"Child default\"); } public Child(int i) { System.out.println(\"int constructor\"); } } public class Exam { public static void main(String[] args) { Child c1 = new Child(); System.out.println(\"-----\"); Child c2 = new Child(10); } }",
+    "question": "다음 코드를 수행할 때, 수행 결과로 가장 적절한 것은?\nclass Parent {\n  public Parent() {\n    System.out.println(\"Parent default\");\n  }\n  public Parent(int i) {\n    this(\"hello\");\n    System.out.println(\"int constructor \" + i);\n  }\n  public Parent(char c) {\n    this();\n    System.out.println(\"char constructor \" + c);\n  }\n  public Parent(String s) {\n    this('A');\n    System.out.println(\"String constructor \" + s);\n  }\n}\nclass Child extends Parent {\n  public Child() {\n    super(10);\n    System.out.println(\"Child default\");\n  }\n  public Child(int i) {\n    System.out.println(\"int constructor\");\n  }\n}\npublic class Exam {\n  public static void main(String[] args) {\n    Child c1 = new Child();\n    System.out.println(\"-----\");\n    Child c2 = new Child(10);\n  }\n}",
     "options": {
-      "1": "Parent default char constructor A String constructor hello int constructor 10 Child default\n----- Parent default int constructor",
-      "2": "Parent default char constructor A String constructor hello int constructor 10 Child default\n----- int constructor",
-      "3": "char constructor A String constructor hello int constructor 10 Child default\n----- Child default int constructor",
-      "4": "int constructor 10 String constructor hello char constructor A Parent default\n----- Child default int constructor"
+      "1": "Parent default\nchar constructor A\nString constructor hello\nint constructor 10\nChild default\n-----\nParent default\nint constructor",
+      "2": "Parent default\nchar constructor A\nString constructor hello\nint constructor 10\nChild default\n-----\nint constructor",
+      "3": "char constructor A\nString constructor hello\nint constructor 10\nChild default\n-----\nChild default\nint constructor",
+      "4": "int constructor 10\nString constructor hello\nchar constructor A\nParent default\n-----\nChild default\nint constructor"
     },
     "answer": 1,
     "has_image": false,
@@ -7953,7 +7953,7 @@
       "1": "COCOMO II는 재사용성 강화 및 컴포넌트를 이용한 조립 개발 환경을 반영하여 COCOMO 비용 예측 모델을 보완하였다.",
       "2": "COCOMO II는 3가지의 대표 모델, 즉 애플리케이션 구성 모델, 초기 추정 모델, 후반 구조 모델을 포함하고 있다.",
       "3": "COCOMO II는 원시 코드의 라인 수를 정확히 예측하기 어렵다는 점을 고려하여 원시코드를 사용하지 않고, 단계별로 정의된 방법으로 값을 계산하고 인건비를 예측하는 방식이다.",
-      "4": "COCOMO II에 적용되는 기본 공식은 E = b × Sc × m(X)이다. 단, 여기서 b × Sc는 기초 소요노 력 예측값, m(X)는 비용 승수의 벡터를 의미한다."
+      "4": "COCOMO II에 적용되는 기본 공식은 E = b × S<sup>c</sup> × m(X)이다. 단, 여기서 b × S<sup>c</sup>는 기초 소요노력 예측값, m(X)는 비용 승수의 벡터를 의미한다."
     },
     "answer": 3,
     "has_image": false,
@@ -8172,7 +8172,7 @@
     "year_round": "2016년(제17회)",
     "subject": "데이터베이스",
     "number": 52,
-    "question": "다음과 같은 상품 구매 트랜잭션에 대해 연관규칙 탐사를 수행했다고 하자. 이 때 계산된 지지도(support)와 신뢰도(confidence)로 옳지 않은 것은?\nT1 = {milk, coke, beer} T2 = {milk, pepsi, juice} T3 = {milk, beer} T4 = {coke, juice} T5 = {milk, pepsi, beer}",
+    "question": "다음과 같은 상품 구매 트랜잭션에 대해 연관규칙 탐사를 수행했다고 하자. 이 때 계산된 지지도(support)와 신뢰도(confidence)로 옳지 않은 것은?\nT1 = {milk, coke, beer}\nT2 = {milk, pepsi, juice}\nT3 = {milk, beer}\nT4 = {coke, juice}\nT5 = {milk, pepsi, beer}",
     "options": {
       "1": "항목집합 {beer, milk}의 지지도는 3/5이다.",
       "2": "{milk} → beer의 지지도는 4/5이다.",
@@ -8256,7 +8256,7 @@
     "year_round": "2016년(제17회)",
     "subject": "데이터베이스",
     "number": 55,
-    "question": "다음 스케줄에 대해 타임스탬프 순서 기법을 적용하였을때 설명이 올바른 것은? (TS(Ti)는 트랜잭션 Ti의 타임스탬프이고, read_TS(x)는 read(x) 연산을 성공적으로 수행한 트랜잭션들의 타임스탬프 중 가장 큰 것이고, write_TS(x)는 write(x) 연산을 성공적으로 수행한 트랜잭션들의 타임스탬프 중 가장 큰것이다. read_TS(x)와 write_TS(x)의 초기값은 모두 1이라고 가정한다.) 2시: T1 read(x) 3시: T2 write(x) 4시: T1 write(x)",
+    "question": "다음 스케줄에 대해 타임스탬프 순서 기법을 적용하였을때 설명이 올바른 것은? (TS(Ti)는 트랜잭션 Ti의 타임스탬프이고, read_TS(x)는 read(x) 연산을 성공적으로 수행한 트랜잭션들의 타임스탬프 중 가장 큰 것이고, write_TS(x)는 write(x) 연산을 성공적으로 수행한 트랜잭션들의 타임스탬프 중 가장 큰 것이다. read_TS(x)와 write_TS(x)의 초기값은 모두 1이라고 가정한다.)\n2시: T1 read(x)\n3시: T2 write(x)\n4시: T1 write(x)",
     "options": {
       "1": "T1은 read(x)를 실행하고 read_TS(x)를 그대로 둔다.",
       "2": "T2의 write(x)는 TS(T2) ≥ write_TS(x)이므로 거부된다.",
@@ -8368,7 +8368,7 @@
     "year_round": "2016년(제17회)",
     "subject": "데이터베이스",
     "number": 59,
-    "question": "릴레이션 STUDENT가 다음과 같을 때, 관계 대수 와 동일한 결과를 얻는 SQL 문장을 바르게 나타낸 것은?\nSTUDENT Fname Lname StudID Sex GPA DeptNo Chulsoo Kim 20160395 M A 5 Gilok Hong 20152932 F B 4 Yoosin Kim 20160244 M C 5 Soonhee Lee 20140294 F A 5 Chansoo Shim 20151285 M A 5 Soonsin Lee 20140893 M B 4 Dasol Park 20150203 F B 4 Kyunghee Jung 20162011 F A 5",
+    "question": "릴레이션 STUDENT가 다음과 같을 때, 관계 대수 Π<sub>Sex, GPA</sub>(STUDENT)와 동일한 결과를 얻는 SQL 문장을 바르게 나타낸 것은?\nSTUDENT Fname Lname StudID Sex GPA DeptNo Chulsoo Kim 20160395 M A 5 Gilok Hong 20152932 F B 4 Yoosin Kim 20160244 M C 5 Soonhee Lee 20140294 F A 5 Chansoo Shim 20151285 M A 5 Soonsin Lee 20140893 M B 4 Dasol Park 20150203 F B 4 Kyunghee Jung 20162011 F A 5",
     "options": {
       "1": "SELECT ALL Sex, GPA FROM STUDENT;",
       "2": "ALL SELECT Sex, GPA FROM STUDENT;",
@@ -8452,7 +8452,7 @@
     "year_round": "2016년(제17회)",
     "subject": "데이터베이스",
     "number": 62,
-    "question": "SQL 문으로 테이블 DEPT와 EMP를 생성하고 뷰 EMPDEPT를 생성하였다. 뷰 생성과 투플 삽입 후 아래 문장을 실행했을 때 오류가 발생하지 않는 것은?\n(SQL 문) CREATE TABLE DEPT( DEPTNO INTEGER PRIMARY KEY, DNAME VARCHAR(14) NOT NULL, LOC VARCHAR(13) ); INSERT INTO DEPT VALUES(10, 'sales', 'seoul'); CREATE TABLE EMP ( EMPNO INTEGER PRIMARY KEY, ENAME VARCHAR(10), JOB VARCHAR(9), DEPTNO INTEGER REFERENCES DEPT(DEPTNO) ); INSERT INTO EMP VALUES(1, 'park', 'managing', 10); CREATE VIEW EMPDEPT AS SELECT ENAME, DNAME, JOB, DEPT.DEPTNO FROM EMP, DEPT WHERE EMP.DEPTNO=DEPT.DEPTNO;",
+    "question": "SQL 문으로 테이블 DEPT와 EMP를 생성하고 뷰 EMPDEPT를 생성하였다. 뷰 생성과 투플 삽입 후 아래 문장을 실행했을 때 오류가 발생하지 않는 것은?\n(SQL 문)\nCREATE TABLE DEPT (\n  DEPTNO INTEGER PRIMARY KEY,\n  DNAME  VARCHAR(14) NOT NULL,\n  LOC    VARCHAR(13)\n);\nINSERT INTO DEPT VALUES(10, 'sales', 'seoul');\nCREATE TABLE EMP (\n  EMPNO  INTEGER PRIMARY KEY,\n  ENAME  VARCHAR(10),\n  JOB    VARCHAR(9),\n  DEPTNO INTEGER REFERENCES DEPT(DEPTNO)\n);\nINSERT INTO EMP VALUES(1, 'park', 'managing', 10);\nCREATE VIEW EMPDEPT AS\n  SELECT ENAME, DNAME, JOB, DEPT.DEPTNO\n  FROM EMP, DEPT\n  WHERE EMP.DEPTNO=DEPT.DEPTNO;",
     "options": {
       "1": "INSERT INTO EMPDEPT VALUES ('kim', 'sales', 'managing', 10);",
       "2": "CREATE VIEW EMPDNAME AS SELECT ENAME, DNAME FROM EMPDEPT;",
@@ -8649,7 +8649,7 @@
     "year_round": "2016년(제17회)",
     "subject": "데이터베이스",
     "number": 69,
-    "question": "다음의 스케줄대로 트랜잭션을 실행했을 때 발생하는 문제는? (트랜잭션 연산 앞의 표기는 시간을 시:\n분:초로 표시한 것임) 00:00:00 T1 read(x) 00:00:01 T1 x = x - N 00:00:02 T1 write(x) 00:00:03 T2 read(x) 00:00:04 T2 x = x + M 00:00:05 T2 write(x) 00:00:06 T1 read(y) 00:00:07 T1 fail",
+    "question": "다음의 스케줄대로 트랜잭션을 실행했을 때 발생하는 문제는? (트랜잭션 연산 앞의 표기는 시간을 시:분:초로 표시한 것임)\n00:00:00  T1 read(x)\n00:00:01  T1 x = x - N\n00:00:02  T1 write(x)\n00:00:03  T2 read(x)\n00:00:04  T2 x = x + M\n00:00:05  T2 write(x)\n00:00:06  T1 read(y)\n00:00:07  T1 fail",
     "options": {
       "1": "갱신 손실(lost update) 문제",
       "2": "부정확한 요약(incorrect summary) 문제",
@@ -11483,7 +11483,7 @@
     "year_round": "2017년(제18회)",
     "subject": "소프트웨어 공학",
     "number": 50,
-    "question": "다음의 코드에 적용된 설계 원리로 가장 거리가 먼 것은?\nclass Data { int v1, v2 ; public:\nData(int _v1, int _v2 ) { v1 = _v1 ; v2 = _v2 ; } int runWith(int x) { return v1 + v2 + x ; } bool check(int x) { return x > v1 + v2 ; } } ; int f1(int x, Data d) { bool success = d.check(x) ; int result = 0 ; if ( success ) result = d.runWith(x) ; return result ; }",
+    "question": "다음의 코드에 적용된 설계 원리로 가장 거리가 먼 것은?\nclass Data {\n  int v1, v2;\npublic:\n  Data(int _v1, int _v2) { v1 = _v1; v2 = _v2; }\n  int runWith(int x) { return v1 + v2 + x; }\n  bool check(int x) { return x > v1 + v2; }\n};\nint f1(int x, Data d) {\n  bool success = d.check(x);\n  int result = 0;\n  if (success)\n    result = d.runWith(x);\n  return result;\n}",
     "options": {
       "1": "모듈화(modularization)",
       "2": "자료 추상화(data abstraction)",
@@ -11570,7 +11570,7 @@
     "question": "다음과 같은 함수적 종속성 집합에 대한 설명 중 틀린 것은?",
     "options": {
       "1": "함수적 종속성 집합 { A → { B, C, D, E }, E → { F, G } }로부터 A → { F, G }를 추론할 수 있다.",
-      "2": "함수적 종속성 집합 { A → B, C → { D, E }, { A, C } → F } 로부터 폐포집합 { A }+ = { A, B }를 구할 수 있다.",
+      "2": "함수적 종속성 집합 { A → B, C → { D, E }, { A, C } → F } 로부터 폐포집합 { A }<sup>+</sup> = { A, B }를 구할 수 있다.",
       "3": "다음 두 함수적 종속성 집합 F = { A → C, AC → D, E → AD, E → H }와 G = { A → CD, E → AH }는 동등하다.",
       "4": "함수적 종속성 집합 { B → A, D → A, AB → D }에 대한 최소 커버는 { B → A, D → A }이다."
     },
@@ -11623,12 +11623,12 @@
     "year_round": "2017년(제18회)",
     "subject": "데이터베이스",
     "number": 55,
-    "question": "다음은 릴레이션 R1, R2와 SQL 질의문이다. SQL 문에 대한 관계대수 연산으로 가장 적합한 것은? (⋈은 자연조인, ⟕은 왼쪽 외부조인 기호) (릴레이션) R1(r1name, a, b, c) R2(r2name, a, b, c) (SQL 문) SELECT r1name FROM R1 WHERE EXISTS (SELECT * FROM R2 WHERE (r1name = r2name))",
+    "question": "다음은 릴레이션 R1, R2와 SQL 질의문이다. SQL 문에 대한 관계대수 연산으로 가장 적합한 것은? (⋈은 자연조인, ⟕은 왼쪽 외부조인 기호)\n(릴레이션)\n  R1(r1name, a, b, c)\n  R2(r2name, a, b, c)\n(SQL 문)\n  SELECT r1name FROM R1\n  WHERE EXISTS (SELECT * FROM R2\n                WHERE (r1name = r2name))",
     "options": {
-      "1": "πr1name (R1 ⟕ r1name = r2name (R2))",
-      "2": "πr1name (R2 - R1)",
-      "3": "πr1name (R1 ⋈ r1name = r2name (R2))",
-      "4": "πr1name (R1 - R2)"
+      "1": "π<sub>r1name</sub>(R1 ⟕<sub>r1name = r2name</sub> (R2))",
+      "2": "π<sub>r1name</sub>(R2 - R1)",
+      "3": "π<sub>r1name</sub>(R1 ⋈<sub>r1name = r2name</sub> (R2))",
+      "4": "π<sub>r1name</sub>(R1 - R2)"
     },
     "answer": 3,
     "has_image": false,
@@ -11707,7 +11707,7 @@
     "year_round": "2017년(제18회)",
     "subject": "데이터베이스",
     "number": 58,
-    "question": "다음 SQL 문과 질의에 대한 결과 값으로 맞는 것은?\n(SQL CREATE, INSERT 문) CREATE TABLE TEST(A INTEGER, B VARCHAR(10)); INSERT INTO TEST VALUES (1, 'kim'); INSERT INTO TEST VALUES (2, ' '); INSERT INTO TEST VALUES (3, NULL); INSERT INTO TEST VALUES (4, 'park'); INSERT INTO TEST VALUES (5, NULL); INSERT INTO TEST VALUES (6, 'lee'); (Oracle DBMS의 SQL 문) SELECT X, X-Y, Z FROM (SELECT COUNT(*) AS X, COUNT(B) AS Y, COUNT(CASE WHEN B IS NOT NULL AND LTRIM(B) IS NULL THEN '1' END) AS Z FROM TEST) T; (SQL Server DBMS의 SQL 문) SELECT X, X-Y, Z FROM (SELECT COUNT(*) AS X, COUNT(B) AS Y, COUNT(CASE WHEN B IS NOT NULL AND LEN(LTRIM(B)) = 0 THEN '1' END) AS Z FROM TEST) T;",
+    "question": "다음 SQL 문과 질의에 대한 결과 값으로 맞는 것은?\n(SQL CREATE, INSERT 문)\nCREATE TABLE TEST(A INTEGER, B VARCHAR(10));\nINSERT INTO TEST VALUES (1, 'kim');\nINSERT INTO TEST VALUES (2, '    ');\nINSERT INTO TEST VALUES (3, NULL);\nINSERT INTO TEST VALUES (4, 'park');\nINSERT INTO TEST VALUES (5, NULL);\nINSERT INTO TEST VALUES (6, 'lee');\n\n(Oracle DBMS의 SQL 문)\nSELECT X, X-Y, Z\nFROM (SELECT COUNT(*) AS X, COUNT(B) AS Y,\n             COUNT(CASE WHEN B IS NOT NULL AND LTRIM(B) IS NULL\n                        THEN '1' END) AS Z\n      FROM TEST) T;\n\n(SQL Server DBMS의 SQL 문)\nSELECT X, X-Y, Z\nFROM (SELECT COUNT(*) AS X, COUNT(B) AS Y,\n             COUNT(CASE WHEN B IS NOT NULL AND LEN(LTRIM(B)) = 0\n                        THEN '1' END) AS Z\n      FROM TEST) T;",
     "options": {
       "1": "6, 2, 1",
       "2": "6, 3, 0",
@@ -11820,7 +11820,7 @@
     "year_round": "2017년(제18회)",
     "subject": "데이터베이스",
     "number": 62,
-    "question": "EMPLOYEE(Eno, Name, Salary, CommissionPercent) 테이블에 대한 다음과 같은 질의가 있다.\nSELECT Name FROM EMPLOYEE WHERE ((Salary * CommissionPercent) + Salary) > 15000; 이러한 유형의 질의의 경우 실행 빈도가 높을 가능성이 많지만 Salary 열에 대한 인덱스가 존재한다고 하더라도 제대로 이용하지 못할 것이다. 이러한 경우에 활용할 수 있는 가장 적절한 인덱싱 기법은?",
+    "question": "EMPLOYEE(Eno, Name, Salary, CommissionPercent) 테이블에 대한 다음과 같은 질의가 있다.\nSELECT Name\nFROM EMPLOYEE\nWHERE ((Salary * CommissionPercent) + Salary) > 15000;\n이러한 유형의 질의의 경우 실행 빈도가 높을 가능성이 많지만 Salary 열에 대한 인덱스가 존재한다고 하더라도 제대로 이용하지 못할 것이다. 이러한 경우에 활용할 수 있는 가장 적절한 인덱싱 기법은?",
     "options": {
       "1": "Bitmap indexing",
       "2": "Function-based indexing",
@@ -12045,7 +12045,7 @@
     "year_round": "2017년(제18회)",
     "subject": "데이터베이스",
     "number": 70,
-    "question": "트랜잭션 T1, T2, T3에 대하여 스케줄 s1, s2 중에서 충돌 직렬 가능한(conflict serializable) 것은?\nT1: r1(x); r1(z); w1(x); T2: r2(z); r2(y); w2(z); T3: r3(x); r3(y); w3(y); s1: r1(x); r2(z); r1(z); r3(x); r3(y); w1(x); w3(y); r2(y); w2(z); s2: r1(x); r2(z); r3(x); r1(z); r2(y); r3(y); w1(x); w2(z); w3(y);",
+    "question": "트랜잭션 T1, T2, T3에 대하여 스케줄 s1, s2 중에서 충돌 직렬 가능한(conflict serializable) 것은?\nT1: r1(x); r1(z); w1(x);\nT2: r2(z); r2(y); w2(z);\nT3: r3(x); r3(y); w3(y);\n\ns1: r1(x); r2(z); r1(z); r3(x); r3(y); w1(x); w3(y); r2(y); w2(z);\ns2: r1(x); r2(z); r3(x); r1(z); r2(y); r3(y); w1(x); w2(z); w3(y);",
     "options": {
       "1": "s1",
       "2": "s2",
@@ -14511,7 +14511,7 @@
     "year_round": "2018년(제19회)",
     "subject": "소프트웨어 공학",
     "number": 38,
-    "question": "다음의 Car 클래스의 speedUp 메소드는 NOT_MOVING, MOVING, FAILED 등에 따라서 상이한 동작을 switch문으로 구현하고 있다. 이와 같은 상황에서 적용하기에 가장 적합한 리팩토링(refactoring) 기법은?\nclass Car { private int _type; public static final int NOT_MOVING = 0; public static final int MOVING = 1; public static final int FAILED = 2; public Car() { _type = NOT_MOVING; } public void speedUp() { switch ( _type ) { case NOT_MOVING: ... break; case MOVING: ... break; case FAILED: ... break; default: ... break; } } }",
+    "question": "다음의 Car 클래스의 speedUp 메소드는 NOT_MOVING, MOVING, FAILED 등에 따라서 상이한 동작을 switch문으로 구현하고 있다. 이와 같은 상황에서 적용하기에 가장 적합한 리팩토링(refactoring) 기법은?\nclass Car {\n  private int _type;\n  public static final int NOT_MOVING = 0;\n  public static final int MOVING = 1;\n  public static final int FAILED = 2;\n  public Car() { _type = NOT_MOVING; }\n  public void speedUp() {\n    switch (_type) {\n      case NOT_MOVING: ... break;\n      case MOVING: ... break;\n      case FAILED: ... break;\n      default: ... break;\n    }\n  }\n}",
     "options": {
       "1": "replace parameter with method",
       "2": "replace type code with state/strategy",
@@ -14679,7 +14679,7 @@
     "year_round": "2018년(제19회)",
     "subject": "소프트웨어 공학",
     "number": 44,
-    "question": "다음 코드를 수행할 때, 수행결과로 가장 적절한 것은 ?\n#include <stdio.h> void main() { int a = 20, b = 30; if ( a++ <= 20 || ++b > 30 ) b++; printf(“%d %d\\n”, a++, b ); }",
+    "question": "다음 코드를 수행할 때, 수행결과로 가장 적절한 것은?\n#include <stdio.h>\nvoid main()\n{\n  int a = 20, b = 30;\n  if (a++ <= 20 || ++b > 30)\n    b++;\n  printf(\"%d %d\\n\", a++, b);\n}",
     "options": {
       "1": "21 31",
       "2": "21 32",
@@ -14819,7 +14819,7 @@
     "year_round": "2018년(제19회)",
     "subject": "소프트웨어 공학",
     "number": 49,
-    "question": "다음 코드를 수행할 때, 수행결과로 가장 적절한 것은?\nint func(int& res, int val) { res = res + val; return res; } void main() { int sum = 0; for(int a = 1; a < 4; a++) sum += func(sum, a); cout << sum << endl; }",
+    "question": "다음 코드를 수행할 때, 수행결과로 가장 적절한 것은?\nint func(int& res, int val) {\n  res = res + val;\n  return res;\n}\nvoid main() {\n  int sum = 0;\n  for (int a = 1; a < 4; a++)\n    sum += func(sum, a);\n  cout << sum << endl;\n}",
     "options": {
       "1": "6",
       "2": "12",
@@ -15211,7 +15211,7 @@
     "year_round": "2018년(제19회)",
     "subject": "데이터베이스",
     "number": 63,
-    "question": "다음과 같은 SQL문을 연속적으로 실행하여 STUDENT 테이블을 생성한 다음, 2개의 투플을 삽입하고, CSTUDENT 뷰를 생성하였다. CSTUDENT 뷰에 데이터를 삽입하는 SQL문 중 삽입이 되지 않는 것은?\nCREATE TABLE STUDENT (SNO INT NOT NULL, NAME VARCHAR(10), YEAR INT, DEPT VARCHAR(10), PRIMARY KEY (SNO) ); INSERT INTO STUDENT VALUES (1001, 'KIM', 4, 'COMPUTER'); INSERT INTO STUDENT VALUES (1002, 'LEE', 4, 'COMPUTER'); CREATE VIEW CSTUDENT (SNO, NAME, YEAR) AS SELECT SNO, NAME, YEAR FROM STUDENT WHERE DEPT = 'COMPUTER';",
+    "question": "다음과 같은 SQL문을 연속적으로 실행하여 STUDENT 테이블을 생성한 다음, 2개의 투플을 삽입하고, CSTUDENT 뷰를 생성하였다. CSTUDENT 뷰에 데이터를 삽입하는 SQL문 중 삽입이 되지 않는 것은?\nCREATE TABLE STUDENT (SNO INT NOT NULL, NAME VARCHAR(10),\n  YEAR INT, DEPT VARCHAR(10), PRIMARY KEY (SNO));\nINSERT INTO STUDENT VALUES (1001, 'KIM', 4, 'COMPUTER');\nINSERT INTO STUDENT VALUES (1002, 'LEE', 4, 'COMPUTER');\nCREATE VIEW CSTUDENT (SNO, NAME, YEAR)\n  AS SELECT SNO, NAME, YEAR\n     FROM STUDENT WHERE DEPT = 'COMPUTER';",
     "options": {
       "1": "INSERT INTO CSTUDENT VALUES (1003, 'PARK', 3);",
       "2": "INSERT INTO CSTUDENT (SNO, NAME) VALUES (1003, 'PARK');",
@@ -15267,7 +15267,7 @@
     "year_round": "2018년(제19회)",
     "subject": "데이터베이스",
     "number": 65,
-    "question": "릴레이션 EMP가 다음과 같이 정의되어 있으며, 사원 1,000명의 데이터가 저장되어 있다. 아래 SQL 질의를 수행하려고 할 때 옵티마이저가 예상하는 결과 투플의 개수로 가장 가까운 것은?\n(릴레이션 EMP) EMP(empno, ename, job, mgr, hiredate, sal, tel, deptname) (SQL 질의) SELECT * FROM EMP WHERE job= 'manager' OR deptname= 'sales'; (데이터에 대한 가정) job 속성의 값의 집합 = { president, manager, salesman, clerk, analyst } deptname 속성의 값의 집합 = { general, accounting, marketing, sales } job, deptname 속성 모두 히스토그램 정보가 수집되어 있지 않다.",
+    "question": "릴레이션 EMP가 다음과 같이 정의되어 있으며, 사원 1,000명의 데이터가 저장되어 있다. 아래 SQL 질의를 수행하려고 할 때 옵티마이저가 예상하는 결과 투플의 개수로 가장 가까운 것은?\n(릴레이션 EMP)\n  EMP(empno, ename, job, mgr, hiredate, sal, tel, deptname)\n(SQL 질의)\n  SELECT * FROM EMP\n  WHERE job = 'manager' OR deptname = 'sales';\n(데이터에 대한 가정)\n  job 속성의 값의 집합 = { president, manager, salesman, clerk, analyst }\n  deptname 속성의 값의 집합 = { general, accounting, marketing, sales }\n  job, deptname 속성 모두 히스토그램 정보가 수집되어 있지 않다.",
     "options": {
       "1": "200",
       "2": "250",
@@ -15855,11 +15855,11 @@
     "year_round": "2018년(제19회)",
     "subject": "시스템 구조",
     "number": 86,
-    "question": "Go-Back-N 프로토콜에서 송신 윈도우의 크기가 2m-1일 때, 수신 윈도우의 크기로 가장 적절한 것은?(여기서, m은 순서번호 필드의 비트 수를 나타낸다.)",
+    "question": "Go-Back-N 프로토콜에서 송신 윈도우의 크기가 2<sup>m</sup>-1일 때, 수신 윈도우의 크기로 가장 적절한 것은?(여기서, m은 순서번호 필드의 비트 수를 나타낸다.)",
     "options": {
       "1": "1",
-      "2": "2m-1",
-      "3": "2m",
+      "2": "2<sup>m</sup>-1",
+      "3": "2<sup>m</sup>",
       "4": "정답 없음"
     },
     "answer": 1,
@@ -15885,10 +15885,10 @@
     "number": 87,
     "question": "특정 언어로 작성된 응용 프로그램이 컴퓨터에서 10초에 실행되었다. 새로운 컴파일러가 발표되 었는데 이전의 컴파일러에 비하여 명령어 개수의 비율은 0.5, CPI(Clock cycles Per Instruction)의 비율은 1.1이 되었다. 새로운 컴파일러를 사용하는 경우에 응용 프로그램의 실행 시간은?",
     "options": {
-      "1": " × ≃ 초",
-      "2": " ×  초",
-      "3": " × ≃ 초",
-      "4": "××  초"
+      "1": "10 / (0.5 × 1.1) ≃ 18.2초",
+      "2": "(10 / 0.5) × 1.1 = 22초",
+      "3": "(10 / 1.1) × 0.5 ≃ 4.5초",
+      "4": "10 × 0.5 × 1.1 = 5.5초"
     },
     "answer": 4,
     "has_image": false,
@@ -15911,12 +15911,12 @@
     "year_round": "2018년(제19회)",
     "subject": "시스템 구조",
     "number": 88,
-    "question": "딥러닝에서 사용되는 ReLU(Rectified Linear Unit) 함수로 가장 적합한 것은? (는 입력값, 는 출력값이다.)",
+    "question": "딥러닝에서 사용되는 ReLU(Rectified Linear Unit) 함수로 가장 적합한 것은? (z는 입력값, y는 출력값이다.)",
     "options": {
-      "1": "  ",
-      "2": "   ",
-      "3": "  max",
-      "4": "     "
+      "1": "y = z",
+      "2": "y = 1 / (1 + e<sup>-z</sup>)",
+      "3": "y = max(z, 0)",
+      "4": "y = (e<sup>z</sup> - e<sup>-z</sup>) / (e<sup>z</sup> + e<sup>-z</sup>)"
     },
     "answer": 3,
     "has_image": false,
@@ -18096,7 +18096,7 @@
     "year_round": "2019년(제20회)",
     "subject": "소프트웨어 공학",
     "number": 46,
-    "question": "다음 JAVA 코드를 실행한 결과 중, 가장 적절한 것은?\nimport java.util.ArrayList; import java.util.Collection; import java.util.HashMap; import java.util.HashSet; import java.util.LinkedList; import java.util.List; import java.util.Map; import java.util.Set; import java.util.Stack; import java.util.TreeMap; import java.util.TreeSet; public class TestB { public static int list = 0, map = 0, set = 0, collection = 0; public static void collectionCounter(Object abc) { if (abc instanceof List) list++; if (abc instanceof Map) map++; if (abc instanceof Set) set++; if (abc instanceof Collection) collection++; } public static void main(String[] args) { collectionCounter(new HashSet<Object>()); collectionCounter(new HashMap<Object, Object>()); collectionCounter(new ArrayList<Object>()); collectionCounter(new LinkedList<Object>()); collectionCounter(new Stack<Object>()); collectionCounter(new TreeSet<Object>()); collectionCounter(new TreeMap<Object, Object>()); System.out.println(\"list = \"+list+\" map = \"+map+\" set = \"+set+\" collection = \"+collection); } }",
+    "question": "다음 JAVA 코드를 실행한 결과 중, 가장 적절한 것은?\nimport java.util.ArrayList;\nimport java.util.Collection;\nimport java.util.HashMap;\nimport java.util.HashSet;\nimport java.util.LinkedList;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.Set;\nimport java.util.Stack;\nimport java.util.TreeMap;\nimport java.util.TreeSet;\n\npublic class TestB {\n  public static int list = 0, map = 0, set = 0, collection = 0;\n  public static void collectionCounter(Object abc) {\n    if (abc instanceof List) list++;\n    if (abc instanceof Map) map++;\n    if (abc instanceof Set) set++;\n    if (abc instanceof Collection) collection++;\n  }\n  public static void main(String[] args) {\n    collectionCounter(new HashSet<Object>());\n    collectionCounter(new HashMap<Object, Object>());\n    collectionCounter(new ArrayList<Object>());\n    collectionCounter(new LinkedList<Object>());\n    collectionCounter(new Stack<Object>());\n    collectionCounter(new TreeSet<Object>());\n    collectionCounter(new TreeMap<Object, Object>());\n    System.out.println(\"list = \"+list+\" map = \"+map+\" set = \"+set+\" collection = \"+collection);\n  }\n}",
     "options": {
       "1": "list = 2 map = 2 set = 2 collection = 1",
       "2": "list = 2 map = 3 set = 3 collection = 5",
@@ -18208,7 +18208,7 @@
     "year_round": "2019년(제20회)",
     "subject": "소프트웨어 공학",
     "number": 50,
-    "question": "다음 pseudo code를 보고 최소 문장 커버리지 (statement coverage) 테스트 케이스(test case)의 수와 최소 분기 커버리지(branch coverage) 테스트 케이스(test case)의 수로 가장 적절한 것은?\nread a, b; if (a+b > 10) then print “Big”; endif if (a > 10) then print “aBig”; endif print a, b;",
+    "question": "다음 pseudo code를 보고 최소 문장 커버리지(statement coverage) 테스트 케이스(test case)의 수와 최소 분기 커버리지(branch coverage) 테스트 케이스(test case)의 수로 가장 적절한 것은?\nread a, b;\nif (a+b > 10) then\n  print “Big”;\nendif\nif (a > 10) then\n  print “aBig”;\nendif\nprint a, b;",
     "options": {
       "1": "문장 커버리지 : 2, 분기 커버리지 : 2",
       "2": "문장 커버리지 : 1, 분기 커버리지 : 1",
@@ -18236,7 +18236,7 @@
     "year_round": "2019년(제20회)",
     "subject": "데이터베이스",
     "number": 51,
-    "question": "다음은 두 릴레이션 R(A,B,C)과 S(C,D)를 SQL로 정의한 것이다. 두 테이블에 대한 데이터 조작 연산과 관련된 설명 중 옳은 것을 모두 고르시오. (2개 선택) CREATE TABLE R (A INT NOT NULL, B CHAR(5), C INT, PRIMARY KEY(A), FOREIGN KEY(C) REFERENCES S(C) ON DELETE SET NULL ON UPDATE CASCADE); CREATE TABLE S (C INT NOT NULL, D CHAR(5), PRIMARY KEY(C));",
+    "question": "다음은 두 릴레이션 R(A,B,C)과 S(C,D)를 SQL로 정의한 것이다. 두 테이블에 대한 데이터 조작 연산과 관련된 설명 중 옳은 것을 모두 고르시오. (2개 선택)\nCREATE TABLE R\n  (A INT NOT NULL, B CHAR(5), C INT, PRIMARY KEY(A),\n   FOREIGN KEY(C) REFERENCES S(C)\n     ON DELETE SET NULL\n     ON UPDATE CASCADE);\nCREATE TABLE S\n  (C INT NOT NULL, D CHAR(5), PRIMARY KEY(C));",
     "options": {
       "1": "테이블 R의 투플은 테이블 S의 상태와 무관하 게 삽입이 가능하다.",
       "2": "테이블 S의 투플은 테이블 R의 상태와 무관하 게 삽입이 가능하다.",
@@ -18633,10 +18633,10 @@
     "number": 65,
     "question": "릴레이션 R1(A, B), R2(C, D)가 있다. 참조무결성 제약조건을 준수할 경우 다음 중 항상 성립하는 것은? (단, R1의 속성 B가 R2의 속성 C를 참조하는 외래키라고 가정한다.) ※ π : 프로젝션 연산자, ∅ : 공집합",
     "options": {
-      "1": "πB(R1) - πC(R2) = ∅",
-      "2": "πC(R2) - πB(R1) = ∅",
-      "3": "πB(R1) = πC(R2)",
-      "4": "πB(R1) - πC(R2) ≠ ∅"
+      "1": "π<sub>B</sub>(R1) - π<sub>C</sub>(R2) = ∅",
+      "2": "π<sub>C</sub>(R2) - π<sub>B</sub>(R1) = ∅",
+      "3": "π<sub>B</sub>(R1) = π<sub>C</sub>(R2)",
+      "4": "π<sub>B</sub>(R1) - π<sub>C</sub>(R2) ≠ ∅"
     },
     "answer": 1,
     "has_image": false,
@@ -18884,7 +18884,7 @@
     "year_round": "2019년(제20회)",
     "subject": "데이터베이스",
     "number": 74,
-    "question": "다음은 즉시 갱신(immediate update) 회복 기법을 사용하는 트랜잭션의 로그이다. 데이터 B의 초기값은 12000 이고, M의 초기값은 0이다. 2개의 트랜잭션 T1, T2가 다음과 같이 수행되어 B와 M의 데이터에 대한 로그 기록을 남겼다. 로그번호 7에서 시스템에 장애가 생겼다고 할때, 회복 과정에서 해야 할 일 중 가장 적절한 것은?\n로그 0. checkpoint 1. T1 start 2. T1 B old=12000 new=10000 3. T1 M old=0 new=2000 4. T1 commit 5. T2 start 6. T2 B old=10000 new=10500 7. <system crash>",
+    "question": "다음은 즉시 갱신(immediate update) 회복 기법을 사용하는 트랜잭션의 로그이다. 데이터 B의 초기값은 12000이고, M의 초기값은 0이다. 2개의 트랜잭션 T1, T2가 다음과 같이 수행되어 B와 M의 데이터에 대한 로그 기록을 남겼다. 로그번호 7에서 시스템에 장애가 생겼다고 할 때, 회복 과정에서 해야 할 일 중 가장 적절한 것은?\n[로그]\n0. checkpoint\n1. T1 start\n2. T1 B old=12000 new=10000\n3. T1 M old=0 new=2000\n4. T1 commit\n5. T2 start\n6. T2 B old=10000 new=10500\n7. <system crash>",
     "options": {
       "1": "로그번호 6을 REDO하여 B를 10500으로 바꾼다.",
       "2": "로그번호 6을 UNDO하여 B를 10000으로 바꾸고, 로그번호 2와 3을 REDO 한다.",
@@ -19080,7 +19080,7 @@
     "year_round": "2019년(제20회)",
     "subject": "시스템 구조",
     "number": 81,
-    "question": "한 개의 CPU를 사용하여 1,000개의 인스트럭션 (instruction)으로 구성된 프로그램이 실행되는 데 걸리는 시간이 2sec라고 가정하자. 이 프로 그램에서 한 개의 인스트럭션을 실행하는데 평균적으로 5개의 clock cycle이 사용된다면 이 CPU 의 clock 속도는 얼마인가?",
+    "question": "한 개의 CPU를 사용하여 1,000개의 인스트럭션(instruction)으로 구성된 프로그램이 실행되는 데 걸리는 시간이 2μsec라고 가정하자. 이 프로그램에서 한 개의 인스트럭션을 실행하는데 평균적으로 5개의 clock cycle이 사용된다면 이 CPU의 clock 속도는 얼마인가?",
     "options": {
       "1": "1.0GHz",
       "2": "2.5GHz",
@@ -19668,7 +19668,7 @@
     "year_round": "2019년(제20회)",
     "subject": "보안",
     "number": 102,
-    "question": "RSA 전자서명에서 서명자의 공개키가 (e, n)이고 개인 키가 (d, n)일 때 메시지 m에 대한 서명은 md mod n 으로 계산된다. 다음과 같은 절차를 통해 계산되는 서명의 유형으로 가장 적절한 것은?\n1) 메시지 작성자가 메시지 m을 작성한 다음 1부터 n 사이에서 n과 서로소인 난수 k를 선택한 후 t ≡ mke mod n를 계산하여 서명자에게 전달한다.\n2) 서명자는 u ≡ td mod n, 즉, (mke)d mod n ≡ mdked mod n ≡ kmd mod n을 계산한 후 메시지 작성자에게 전달한다.\n3) 메시지 작성자는 u/k ≡ md mod n을 계산하여 메시지 m에 대한 서명을 구한다.",
+    "question": "RSA 전자서명에서 서명자의 공개키가 (e, n)이고 개인키가 (d, n)일 때 메시지 m에 대한 서명은 m<sup>d</sup> mod n으로 계산된다. 다음과 같은 절차를 통해 계산되는 서명의 유형으로 가장 적절한 것은?\n1) 메시지 작성자가 메시지 m을 작성한 다음 1부터 n 사이에서 n과 서로소인 난수 k를 선택한 후 t ≡ mk<sup>e</sup> mod n를 계산하여 서명자에게 전달한다.\n2) 서명자는 u ≡ t<sup>d</sup> mod n, 즉, (mk<sup>e</sup>)<sup>d</sup> mod n ≡ m<sup>d</sup>k<sup>ed</sup> mod n ≡ km<sup>d</sup> mod n을 계산한 후 메시지 작성자에게 전달한다.\n3) 메시지 작성자는 u/k ≡ m<sup>d</sup> mod n을 계산하여 메시지 m에 대한 서명을 구한다.",
     "options": {
       "1": "위임 서명(proxy signature)",
       "2": "은닉 서명(blind signature)",
@@ -21071,7 +21071,7 @@
     "year_round": "2020년(제21회)",
     "subject": "소프트웨어 공학",
     "number": 32,
-    "question": "다음 코드에 대한 순환복잡도(cyclomatic complexity)로 가장 적절한 것은?(단, 코드 실행상의 문제가 없다고 가정함) void Scoreboard::drawscore(int n) { if (n > 0) { score[numdigits]->erase(); } numdigits = 0; if (n == 0) { delete score[numdigits]; score[numdigits] = new Displayable(digits[0]); score[numdigits]->move(Point((700-numdigits*18),40)); score[numdigits]->draw(); numdigits++; } while (n) { int rem = n % 10; delete score[numdigits]; score[numdigits] = new Displayable(digits[rem]); score[numdigits]->move(Point((700-numdigits*18),40)); score[numdigits]->draw(); n /= 10; numdigits++; } }",
+    "question": "다음 코드에 대한 순환복잡도(cyclomatic complexity)로 가장 적절한 것은?(단, 코드 실행상의 문제가 없다고 가정함)\nvoid Scoreboard::drawscore(int n) {\n  if (n > 0) {\n    score[numdigits]->erase();\n  }\n  numdigits = 0;\n  if (n == 0) {\n    delete score[numdigits];\n    score[numdigits] = new Displayable(digits[0]);\n    score[numdigits]->move(Point((700-numdigits*18),40));\n    score[numdigits]->draw();\n    numdigits++;\n  }\n  while (n) {\n    int rem = n % 10;\n    delete score[numdigits];\n    score[numdigits] = new Displayable(digits[rem]);\n    score[numdigits]->move(Point((700-numdigits*18),40));\n    score[numdigits]->draw();\n    n /= 10;\n    numdigits++;\n  }\n}",
     "options": {
       "1": "2",
       "2": "3",
@@ -21743,7 +21743,7 @@
     "year_round": "2020년(제21회)",
     "subject": "데이터베이스",
     "number": 56,
-    "question": "두 릴레이션 R(Z), S(X)에 대해 X⊆Z이고 Y=Z-X 라고 할 때 다음의 연산들을 순서대로 적용한 결과가 의미하는 연산으로 적절한 것은?\nT1 ← πY(R) T2 ← πY((S × T1) - R) T ← T1 - T2",
+    "question": "두 릴레이션 R(Z), S(X)에 대해 X⊆Z이고 Y=Z-X 라고 할 때 다음의 연산들을 순서대로 적용한 결과가 의미하는 연산으로 적절한 것은?\nT1 ← π<sub>Y</sub>(R)\nT2 ← π<sub>Y</sub>((S × T1) - R)\nT ← T1 - T2",
     "options": {
       "1": "조인",
       "2": "디비전",
@@ -21855,7 +21855,7 @@
     "year_round": "2020년(제21회)",
     "subject": "데이터베이스",
     "number": 60,
-    "question": "릴레이션 R의 투플 수를 |R|로 표기하고, 조인 조건을 c라고 할 때, 조인 선택도(join selectivity) js=|(R⋈CS)|/|(R×S)|이다. c가 없으면 js=1이 되고, c를 만족하는 투플이 없으 면 js=0이 된다. 조인 조건 c가 R.A=S.B 형태이 고, |R|=8, |S|=3이라고 하자. 다음 설명을 만족하는 값들 중 가장 작은 값은?",
+    "question": "릴레이션 R의 투플 수를 |R|로 표기하고, 조인 조건을 c라고 할 때, 조인 선택도(join selectivity) js = |(R ⋈<sub>c</sub> S)| / |(R × S)|이다. c가 없으면 js=1이 되고, c를 만족하는 투플이 없으면 js=0이 된다. 조인 조건 c가 R.A=S.B 형태이고, |R|=8, |S|=3이라고 하자. 다음 설명을 만족하는 값들 중 가장 작은 값은?",
     "options": {
       "1": "B가 S의 기본키일 때 js의 최대값",
       "2": "A가 R의 기본키일 때 js의 최대값",
@@ -22079,12 +22079,12 @@
     "year_round": "2020년(제21회)",
     "subject": "데이터베이스",
     "number": 68,
-    "question": "다음은 규칙  → 의 분할표(contingency table)를 표현한 것이다. 이 표를 이용해 구한 다음의 값들 중 가장 큰 값은?\n   15 5 20  75 5 80 90 10 100",
+    "question": "다음은 규칙 X → Y의 분할표(contingency table)를 표현한 것이다. 이 표를 이용해 구한 다음의 값들 중 가장 큰 값은?\nY / Ȳ | X: 15, 5 (20) | X̄: 75, 5 (80) | 합계: 90, 10 (100)",
     "options": {
-      "1": " → 의 지지도(support)",
-      "2": " → 의 신뢰도(confidence)",
-      "3": " → 의 상승(lift)",
-      "4": " → 의 신뢰도"
+      "1": "X → Y의 지지도(support)",
+      "2": "X → Y의 신뢰도(confidence)",
+      "3": "X → Y의 상승(lift)",
+      "4": "X → Ȳ의 신뢰도"
     },
     "answer": 3,
     "has_image": true,
@@ -22275,7 +22275,7 @@
     "year_round": "2020년(제21회)",
     "subject": "데이터베이스",
     "number": 75,
-    "question": "분산 데이터베이스에서 릴레이션 R의 단편(fragment)은 πL(σC(R))로 명세될 수 있다. 다음 중 수직 단편을 표현한 경우로 옳은 것은? (단, ATTRS(R)은 R의 애트 리뷰트의 집합, L은 애트리뷰트 리스트, C는 R의 모든 투플이 선택되는 조건식을 의미한다.)",
+    "question": "분산 데이터베이스에서 릴레이션 R의 단편(fragment)은 π<sub>L</sub>(σ<sub>C</sub>(R))로 명세될 수 있다. 다음 중 수직 단편을 표현한 경우로 옳은 것은? (단, ATTRS(R)은 R의 애트리뷰트의 집합, L은 애트리뷰트 리스트, C는 R의 모든 투플이 선택되는 조건식을 의미한다.)",
     "options": {
       "1": "C = TRUE and L = ATTRS(R)",
       "2": "C = TRUE and L ≠ ATTRS(R)",
@@ -22891,12 +22891,12 @@
     "year_round": "2020년(제21회)",
     "subject": "시스템 구조",
     "number": 97,
-    "question": " =10000 일 때 이를 [] 단위로 변환한 값으로 가장 적절한 것은? (단, 여기서 는 신호 전력, 은 잡음 전력을 나타낸다.)",
+    "question": "S/N = 10000 일 때 이를 [dB] 단위로 변환한 값으로 가장 적절한 것은? (단, 여기서 S는 신호 전력, N은 잡음 전력을 나타낸다.)",
     "options": {
-      "1": "10",
-      "2": "20",
-      "3": "30",
-      "4": "40"
+      "1": "10 dB",
+      "2": "20 dB",
+      "3": "30 dB",
+      "4": "40 dB"
     },
     "answer": 4,
     "has_image": false,
@@ -23649,10 +23649,10 @@
     "number": 4,
     "question": "다음 네트워크 다이어그램을 보고 가장 적절한 자원 평준화(resource leveling) 방법은?(단, 활동들은 가능한 가장 빠른 시점에 시작된다고 가정한다.)",
     "options": {
-      "1": "a 활동을 일 늦게 시작한다4 .",
-      "2": "b 활동을 일 늦게 시작한다2 .",
-      "3": "c 활동을 일 늦게 시작한다1 .",
-      "4": "a 활동과 b 활동을 각각 일씩 늦게 시작한다1 ."
+      "1": "a 활동을 4일 늦게 시작한다.",
+      "2": "b 활동을 2일 늦게 시작한다.",
+      "3": "c 활동을 1일 늦게 시작한다.",
+      "4": "a 활동과 b 활동을 각각 1일씩 늦게 시작한다."
     },
     "answer": 2,
     "has_image": true,
@@ -24291,7 +24291,7 @@
     "year_round": "2021년(제22회)",
     "subject": "소프트웨어 공학",
     "number": 27,
-    "question": "다음 상황에 적용하기에 가장 적절한 디자인 패턴은?\n 장기 게임을 하는 프로그램에서 사용자의 선택에 맞추어서 특정 루틴의 레벨을 간단하게 교체할 수도 있다.\n 메모리가 적은 환경에서는 속도는 느리지만 메모리를 절약하는 알고리즘을 사용하고, 메모리가 많은 환경에서는 속도는 빠르지만 메모리를 많이 사용하는 알고리즘을 사용한다.\n 스프레드시트 소프트웨어의 디버그 판에서 복잡한 계산을 실행할 때, ‘버그가 있을지도 모르는 고속의 알고리즘’과 ‘저속이지만 확실한 계산을 실행하는 알고리즘’을 준비해서 전자의 검산을 후자로 실행시킨다.",
+    "question": "다음 상황에 적용하기에 가장 적절한 디자인 패턴은?\n• 장기 게임을 하는 프로그램에서 사용자의 선택에 맞추어서 특정 루틴의 레벨을 간단하게 교체할 수도 있다.\n• 메모리가 적은 환경에서는 속도는 느리지만 메모리를 절약하는 알고리즘을 사용하고, 메모리가 많은 환경에서는 속도는 빠르지만 메모리를 많이 사용하는 알고리즘을 사용한다.\n• 스프레드시트 소프트웨어의 디버그 판에서 복잡한 계산을 실행할 때, ‘버그가 있을지도 모르는 고속의 알고리즘’과 ‘저속이지만 확실한 계산을 실행하는 알고리즘’을 준비해서 전자의 검산을 후자로 실행시킨다.",
     "options": {
       "1": "strategy 패턴",
       "2": "observer 패턴",
@@ -24431,7 +24431,7 @@
     "year_round": "2021년(제22회)",
     "subject": "소프트웨어 공학",
     "number": 32,
-    "question": "다음은 Java 프로그램의 코드 일부분을 보여준다.\n이 프로그램을 컴파일할 때 (가) ~ (라) 라인 중에서 컴파일 오류가 발생하지 않는 부분(라인)들만으로 가장 적절하게 묶인 것은?\npublic class Test { private int a = 0; private static count = 0; public int getA() { return a; } public static int getCount() { return count; } public static void test() { int sum = 0; sum = a; // (가) sum += count; // (나) System.out.println(getA()); // (다) System.out.println(getCount()); // (라) } }",
+    "question": "다음은 Java 프로그램의 코드 일부분을 보여준다.\n이 프로그램을 컴파일할 때 (가) ~ (라) 라인 중에서 컴파일 오류가 발생하지 않는 부분(라인)들만으로 가장 적절하게 묶인 것은?\npublic class Test\n{\n  private int a = 0;\n  private static count = 0;\n  public int getA() { return a; }\n  public static int getCount() { return count; }\n  public static void test() {\n    int sum = 0;\n    sum = a;                          // (가)\n    sum += count;                     // (나)\n    System.out.println(getA());       // (다)\n    System.out.println(getCount());   // (라)\n  }\n}",
     "options": {
       "1": "가, 다",
       "2": "나, 라",
@@ -24686,7 +24686,7 @@
     "year_round": "2021년(제22회)",
     "subject": "소프트웨어 공학",
     "number": 41,
-    "question": "문제를 일으킬 가능성 때문에 리팩토링(refactoring)이 필요한 코드는 ‘악취(bad smell)’가 있다고 표현한다. 다음 설명에 가장 적절한 코드 악취(bad smell)는?\n 변경을 할 때마다 많은 클래스를 조금씩 수정해야한다.\n 변경해야 할 것이 여러 군데 널려 있기 때문에 찾기도 어렵고 변경해야 할 중요한 사항을 놓치 기도 쉽다.",
+    "question": "문제를 일으킬 가능성 때문에 리팩토링(refactoring)이 필요한 코드는 ‘악취(bad smell)’가 있다고 표현한다. 다음 설명에 가장 적절한 코드 악취(bad smell)는?\n• 변경을 할 때마다 많은 클래스를 조금씩 수정해야한다.\n• 변경해야 할 것이 여러 군데 널려 있기 때문에 찾기도 어렵고 변경해야 할 중요한 사항을 놓치 기도 쉽다.",
     "options": {
       "1": "기능에 대한 욕심(feature envy)",
       "2": "데이터 덩어리(data clump)",
@@ -24770,7 +24770,7 @@
     "year_round": "2021년(제22회)",
     "subject": "소프트웨어 공학",
     "number": 44,
-    "question": "ISO/IEC/IEEE 29119에서는 combinatorial test techniques으로서 all combination testing, pair-wise testing, each choice testing, base choice testing이 제시되고 있다. 다음의 문제에 대하여 가장 많은 수의 테스트케이스를 생성하는 기법과 가장 작은 수의 테스트케이스를 생성하는 기법으로 가장 적절하게 묶인 것은?\n 여행 목적지: 서울, 부산, 강릉  여행 방법: 자가용, 기차, 택시  숙박 유형: 고급호텔, 보통호텔",
+    "question": "ISO/IEC/IEEE 29119에서는 combinatorial test techniques으로서 all combination testing, pair-wise testing, each choice testing, base choice testing이 제시되고 있다. 다음의 문제에 대하여 가장 많은 수의 테스트케이스를 생성하는 기법과 가장 작은 수의 테스트케이스를 생성하는 기법으로 가장 적절하게 묶인 것은?\n• 여행 목적지: 서울, 부산, 강릉 • 여행 방법: 자가용, 기차, 택시 • 숙박 유형: 고급호텔, 보통호텔",
     "options": {
       "1": "all combination testing, each choice testing",
       "2": "all combination testing, base choice testing",
@@ -25022,7 +25022,7 @@
     "year_round": "2021년(제22회)",
     "subject": "데이터베이스",
     "number": 53,
-    "question": "릴레이션 스키마 S=(A, B, C, D, E, F, G)에서 다음과 같은 함수적 종속성(functional dependency)이 존재한다고 가정하자. 릴레이션 에서 후보 S 키로서 옳지 않은 것은?\nA → ABCDEFG, BD → E, CE → A",
+    "question": "릴레이션 스키마 S=(A, B, C, D, E, F, G)에서 다음과 같은 함수적 종속성(functional dependency)이 존재한다고 가정하자. 릴레이션 S에서 후보 키로서 옳지 않은 것은?\nA → ABCDEFG, BD → E, CE → A",
     "options": {
       "1": "A",
       "2": "BD",
@@ -25110,8 +25110,8 @@
     "options": {
       "1": "k-최근접 이웃 조인(k-nearest neighbor join)",
       "2": "중첩 루프 조인(nested loop join)",
-      "3": "정렬 합병 조인- (sort-merge join)",
-      "4": "분할 해시 조인- (partition-hash join)"
+      "3": "정렬-합병 조인(sort-merge join)",
+      "4": "분할-해시 조인(partition-hash join)"
     },
     "answer": 1,
     "has_image": false,
@@ -25246,7 +25246,7 @@
     "year_round": "2021년(제22회)",
     "subject": "데이터베이스",
     "number": 61,
-    "question": "다음 릴레이션 과 에 대해 결과 릴레이션 R S RS가 얻어지도록 하는 관계 대수 연산으로 옳은 것은?\nR S RS A B C B C D A B C a1 b1 c1 b1 c1 d1 a1 b1 c1 a2 b1 c1 b1 c1 d2 a2 b1 c1 a3 b1 c2 b2 c3 d3 a4 b2 c3 a4 b2 c3",
+    "question": "다음 릴레이션 R과 S에 대해 결과 릴레이션 RS가 얻어지도록 하는 관계 대수 연산으로 옳은 것은?\nR S RS A B C B C D A B C a1 b1 c1 b1 c1 d1 a1 b1 c1 a2 b1 c1 b1 c1 d2 a2 b1 c1 a3 b1 c2 b2 c3 d3 a4 b2 c3 a4 b2 c3",
     "options": {
       "1": "R⋈NS (natural join)",
       "2": "R⟖c=cS (right outer join)",
@@ -25274,12 +25274,12 @@
     "year_round": "2021년(제22회)",
     "subject": "데이터베이스",
     "number": 62,
-    "question": "다음과 같은 특징을 가지는 NoSQL 데이터베이스 유형으로 가장 적절한 것은?\n 관계 데이터 모델과 비슷하게 데이터는 물론 데이터 간의 관계를 표현하는데 적합하다.\n 다른 NoSQL 모델과 달리 트랜잭션을 통해 ACID를 지원하며 클러스터 환경에는 적합하지 않다.\n 연관 데이터를 추천해주거나 소셜 네트워크에 서 친구 찾기 질의를 효율적으로 수행하는데 적합하다.",
+    "question": "다음과 같은 특징을 가지는 NoSQL 데이터베이스 유형으로 가장 적절한 것은?\n• 관계 데이터 모델과 비슷하게 데이터는 물론 데이터 간의 관계를 표현하는데 적합하다.\n• 다른 NoSQL 모델과 달리 트랜잭션을 통해 ACID를 지원하며 클러스터 환경에는 적합하지 않다.\n• 연관 데이터를 추천해주거나 소셜 네트워크에서 친구 찾기 질의를 효율적으로 수행하는데 적합하다.",
     "options": {
       "1": "그래프 기반(graph-based) 데이터베이스",
       "2": "컬럼 기반(column-based) 데이터베이스",
       "3": "문서 기반(document-based) 데이터베이스",
-      "4": "키 값- (key-value) 데이터베이스"
+      "4": "키-값(key-value) 데이터베이스"
     },
     "answer": 1,
     "has_image": false,
@@ -25442,7 +25442,7 @@
     "year_round": "2021년(제22회)",
     "subject": "데이터베이스",
     "number": 68,
-    "question": "다음 릴레이션 과 에 대해 보기 의 개 관계 R S < > 4 연산을 수행했을 때 개 결과 릴레이션의 카디널4 리티(cardinality)의 합으로 옳은 것은?\nR S A B C C D 10 a 1 1 x 20 b 2 2 y 30 c 3 4 z 40 d 2 50 e 5\n<보기> R⋈c<cS (theta join) R⋈N S (natural join) R⟕c=cS (left outer join) R⟖c=cS (right outer join)",
+    "question": "다음 릴레이션 R과 S에 대해 <보기>의 4개 관계 연산을 수행했을 때 4개 결과 릴레이션의 카디널리티(cardinality)의 합으로 옳은 것은?\nR S A B C C D 10 a 1 1 x 20 b 2 2 y 30 c 3 4 z 40 d 2 50 e 5\n<보기> R⋈c<cS (theta join) R⋈N S (natural join) R⟕c=cS (left outer join) R⟖c=cS (right outer join)",
     "options": {
       "1": "15",
       "2": "17",
@@ -25526,7 +25526,7 @@
     "year_round": "2021년(제22회)",
     "subject": "데이터베이스",
     "number": 71,
-    "question": "트랜잭션 관리에서 다음과 같이 개의 트랜잭션에3 대해 검사시점(checkpoint) 회복 기법이 사용될 때, 시스템이 장애가 발생한 후 트랜잭션들의 REDO 연산과 UNDO 연산을 수행하는 설명으로 옳지 않은 것은?\n 검사시점 C1이 정상적으로 수행되었고 검사시 점 C2가 수행될 때 장애가 발생했다.\n 트랜잭션 T1은 C1 이전에 시작해서 C1 이전에 완료되었다.\n 트랜잭션 T2는 C1 이전에 시작해서 C2 이전에 완료되었다.\n 트랜잭션 T3는 C1 이전에 시작해서 C2일 때수행 중이었다.",
+    "question": "트랜잭션 관리에서 다음과 같이 3개의 트랜잭션에 대해 검사시점(checkpoint) 회복 기법이 사용될 때, 시스템에 장애가 발생한 후 트랜잭션들의 REDO 연산과 UNDO 연산을 수행하는 설명으로 옳지 않은 것은?\n• 검사시점 C1이 정상적으로 수행되었고 검사시점 C2가 수행될 때 장애가 발생했다.\n• 트랜잭션 T1은 C1 이전에 시작해서 C1 이전에 완료되었다.\n• 트랜잭션 T2는 C1 이전에 시작해서 C2 이전에 완료되었다.\n• 트랜잭션 T3는 C1 이전에 시작해서 C2일 때 수행 중이었다.",
     "options": {
       "1": "T1은 회복 작업에 관련될 필요가 없다.",
       "2": "T2는 처음부터 끝까지 REDO를 수행한다.",
@@ -25586,7 +25586,7 @@
     "options": {
       "1": "15",
       "2": "0.5",
-      "3": "",
+      "3": "√31",
       "4": "13"
     },
     "answer": 2,
@@ -25610,11 +25610,11 @@
     "year_round": "2021년(제22회)",
     "subject": "데이터베이스",
     "number": 74,
-    "question": "릴레이션 을 릴레이션 R R1과 R2로 분해할 때 바람 직한 분해(decomposition)에 대한 설명으로 가장 적절하지 않은 것은? (단, R1∩R2는 R1과 R2의 공통 속성을 의미한다.)",
+    "question": "릴레이션 R을 릴레이션 R<sub>1</sub>과 R<sub>2</sub>로 분해할 때 바람직한 분해(decomposition)에 대한 설명으로 가장 적절하지 않은 것은? (단, R<sub>1</sub>∩R<sub>2</sub>는 R<sub>1</sub>과 R<sub>2</sub>의 공통 속성을 의미한다.)",
     "options": {
       "1": "손실없는 분해(lossless decomposition)가 되어야한다.",
-      "2": "함수적 종속성(functional dependency) R1∩R2 → R1 과 R1∩R2 → R2 를 모두 만족하여야 한다.",
-      "3": "R1∩R2 가 R1 의 수퍼키가 된다.",
+      "2": "함수적 종속성(functional dependency) R<sub>1</sub>∩R<sub>2</sub> → R<sub>1</sub> 과 R<sub>1</sub>∩R<sub>2</sub> → R<sub>2</sub> 를 모두 만족하여야 한다.",
+      "3": "R<sub>1</sub>∩R<sub>2</sub> 가 R<sub>1</sub> 의 수퍼키가 된다.",
       "4": "R의 함수 종속성은 분해 후에도 가급적 보존되 어야 한다."
     },
     "answer": 2,
@@ -25834,7 +25834,7 @@
     "year_round": "2021년(제22회)",
     "subject": "시스템 구조",
     "number": 82,
-    "question": "월요일부터 금요일까지 매일 24시간 동안 운영하는 시스템에서 다음과 같이 장애가 발생했을 때 MTTR (Mean Time To Repair)로 가장 적절한 것은?\n 월요일: 13:00부터 14:00까지 장애 발생  화요일: 장애 없음  수요일: 장애 없음  목요일: 16:00부터 19:00까지 장애 발생  금요일: 장애 없음",
+    "question": "월요일부터 금요일까지 매일 24시간 동안 운영하는 시스템에서 다음과 같이 장애가 발생했을 때 MTTR (Mean Time To Repair)로 가장 적절한 것은?\n• 월요일: 13:00부터 14:00까지 장애 발생 • 화요일: 장애 없음 • 수요일: 장애 없음 • 목요일: 16:00부터 19:00까지 장애 발생 • 금요일: 장애 없음",
     "options": {
       "1": "1시간",
       "2": "2시간",
@@ -26114,7 +26114,7 @@
     "year_round": "2021년(제22회)",
     "subject": "시스템 구조",
     "number": 92,
-    "question": "일반적인 응답시간(response time)은 요청(request) 한 후 응답(response)을 받을 때까지 소요되는 시간으로, 측정하는 위치에 따라 여러 가지 유형으로 나뉜다. 아래의 설명에 해당하는 응답시간 유형으로 가장 적절한 것은?\n 사용자 요청이 클라이언트 네트워크에서 전송된 후부터 클라이언트 네트워크에 도달하기까지의 경과된 시간을 의미한다.\n HTTP나 TP 모니터 테스트시에 측정된 로드 러너 (Load Runner) 응답시간이다.\n 응답시간을 세분화하면 DNS Look-up 시간과 서비 스 업로드 다운로드에 소요된 시간 그리고 서버 / 응답시간을 포함한다.",
+    "question": "일반적인 응답시간(response time)은 요청(request) 한 후 응답(response)을 받을 때까지 소요되는 시간으로, 측정하는 위치에 따라 여러 가지 유형으로 나뉜다. 아래의 설명에 해당하는 응답시간 유형으로 가장 적절한 것은?\n• 사용자 요청이 클라이언트 네트워크에서 전송된 후부터 클라이언트 네트워크에 도달하기까지의 경과된 시간을 의미한다.\n• HTTP나 TP 모니터 테스트시에 측정된 로드 러너 (Load Runner) 응답시간이다.\n• 응답시간을 세분화하면 DNS Look-up 시간과 서비 스 업로드 다운로드에 소요된 시간 그리고 서버 / 응답시간을 포함한다.",
     "options": {
       "1": "클라이언트 응답시간",
       "2": "네트워크 응답시간",
@@ -26400,7 +26400,7 @@
     "options": {
       "1": "S/KEY 방식",
       "2": "시간 동기화 방식",
-      "3": "도전 응답 방식-",
+      "3": "도전-응답 방식",
       "4": "이벤트 동기화 방식"
     },
     "answer": 3,
@@ -26510,9 +26510,9 @@
     "number": 106,
     "question": "SHA-2를 대체하기 위해서 발표한 해시함수인 SHA-3에 대한 설명으로 가장 적절하지 않은 것은?",
     "options": {
-      "1": "SHA-3의 입력되는 데이터의 크기는 2128-1로 제한된다.",
+      "1": "SHA-3의 입력되는 데이터의 크기는 2<sup>128</sup>-1로 제한된다.",
       "2": "SHA-1, SHA-2와는 전혀 다른 스펀지 구조가 사용되고 있다.",
-      "3": "출력 비트열의 길이에 따라 SHA3-224, SHA3-256, SHA3-384, SHA3-512의 종류가 있다4 .",
+      "3": "출력 비트열의 길이에 따라 SHA3-224, SHA3-256, SHA3-384, SHA3-512의 4종류가 있다.",
       "4": "SHA-3는 해시값 생성 뿐만 아니라 의사난수 생성기, 스트림 암호 등의 기능에도 활용할 수 있다."
     },
     "answer": 1,
@@ -26872,7 +26872,7 @@
     "year_round": "2021년(제22회)",
     "subject": "보안",
     "number": 119,
-    "question": "다음의 C 코드가 갖는 문제점으로 가장 적절하지 않은 것은?\nint CheckLogin() { char* _username = (char*) malloc(32); char username[32]; scanf(\"%s\", _username); strcpy(username, _username); ... }",
+    "question": "다음의 C 코드가 갖는 문제점으로 가장 적절하지 않은 것은?\nint CheckLogin()\n{\n  char* _username = (char*) malloc(32);\n  char username[32];\n  scanf(\"%s\", _username);\n  strcpy(username, _username);\n  ...\n}",
     "options": {
       "1": "스택 오버플로우(stack overflow)",
       "2": "힙 오버플로우(heap overflow)",
@@ -27712,7 +27712,7 @@
     "year_round": "2022년(제23회)",
     "subject": "소프트웨어 공학",
     "number": 29,
-    "question": "다음 의사 코드(Pseudo Code)에 대하여 McCabe의 Complexity Number를 계산한 것 중 가장 적절한 것은? (단, 코드 실행에 대한 오류는 없는 것으로 가정함) i = 0; n=4; //N-Number of nodes present in the graph while (i<n-1) do j = i + 1; while (j<n) do if A[i]<A[j] then swap(A[i], A[j]); end do; i=i+1; end do;",
+    "question": "다음 의사 코드(Pseudo Code)에 대하여 McCabe의 Complexity Number를 계산한 것 중 가장 적절한 것은? (단, 코드 실행에 대한 오류는 없는 것으로 가정함)\ni = 0;\nn = 4; // N-Number of nodes present in the graph\nwhile (i < n-1) do\n  j = i + 1;\n  while (j < n) do\n    if A[i] < A[j] then\n      swap(A[i], A[j]);\n  end do;\n  i = i + 1;\nend do;",
     "options": {
       "1": "4",
       "2": "5",
@@ -27740,7 +27740,7 @@
     "year_round": "2022년(제23회)",
     "subject": "소프트웨어 공학",
     "number": 30,
-    "question": "다음은 검색 알고리즘에 관한 JAVA Code 문제이다.\n숫자 배열 {1, 2, 3, 4}와 정수 k는 3으로 입력 되었을 때, 출력 결과로 가장 적절한 것은?\npublic class Search { public static int search(List<Integer> list, int k) { int left = 0, right = list.size() -1, result = -1; while(left <= right) { int mid = left + ((right - left) / 2); if (list.get(mid) > k) { right = mid -1; } else if (list.get(mid) == k) { result = mid; right = mid -1; } else { left = mid+1; } } return result; } public static void main(String[] args) { Integer[] intArr = {1, 2, 3, 4}; List<Integer> list = Arrays.asList(intArr); System.out.println(search(list, 3)); } }",
+    "question": "다음은 검색 알고리즘에 관한 JAVA Code 문제이다. 숫자 배열 {1, 2, 3, 4}와 정수 k는 3으로 입력되었을 때, 출력 결과로 가장 적절한 것은?\npublic class Search {\n  public static int search(List<Integer> list, int k) {\n    int left = 0, right = list.size() - 1, result = -1;\n    while (left <= right) {\n      int mid = left + ((right - left) / 2);\n      if (list.get(mid) > k) {\n        right = mid - 1;\n      } else if (list.get(mid) == k) {\n        result = mid;\n        right = mid - 1;\n      } else {\n        left = mid + 1;\n      }\n    }\n    return result;\n  }\n  public static void main(String[] args) {\n    Integer[] intArr = {1, 2, 3, 4};\n    List<Integer> list = Arrays.asList(intArr);\n    System.out.println(search(list, 3));\n  }\n}",
     "options": {
       "1": "1",
       "2": "2",
@@ -28974,10 +28974,10 @@
     "number": 74,
     "question": "다음은 스팸(Spam) 메일을 인식하기 위해 구축한 예측모델로부터 얻어진 혼돈행렬(confusion matrix)이다. 이 혼돈행렬로부터 구할 수 있는 성능척도 값이 옳지 않은 것은?\n예측 클래스 Spam Non-Spam Spam TP = 45 FN = 20 정답 클래스 Non-Spam FP = 5 TN = 30",
     "options": {
-      "1": "정밀도(precision) = ",
-      "2": "재현율(recall) = ",
-      "3": "특이도(specificity) = ",
-      "4": "정확도(accuracy) = "
+      "1": "정밀도(precision) = 45/50",
+      "2": "재현율(recall) = 45/65",
+      "3": "특이도(specificity) = 20/50",
+      "4": "정확도(accuracy) = 75/100"
     },
     "answer": 3,
     "has_image": true,
@@ -31552,7 +31552,7 @@
     "year_round": "2023년(제24회)",
     "subject": "소프트웨어 공학",
     "number": 46,
-    "question": "다음은 JUnit4의 코드 골격이다. 테스트 수행시에 메소드들의 수행순서로 가장 적절한 것은?\npublic class TestSample { @BeforeClass public static void a() { } @AfterClass public static void b() { } @Before public void c() { } @After public void d() { } @Test public void t1() { } @Test public void t2() { } }",
+    "question": "다음은 JUnit4의 코드 골격이다. 테스트 수행시에 메소드들의 수행순서로 가장 적절한 것은?\npublic class TestSample {\n  @BeforeClass\n  public static void a() { }\n  @AfterClass\n  public static void b() { }\n  @Before\n  public void c() { }\n  @After\n  public void d() { }\n  @Test\n  public void t1() { }\n  @Test\n  public void t2() { }\n}",
     "options": {
       "1": "a(), b(), c(), d(), t1(), t2()",
       "2": "a(), c(), t1(), t2(), d(), b()",
@@ -32644,7 +32644,7 @@
     "year_round": "2023년(제24회)",
     "subject": "시스템 구조",
     "number": 85,
-    "question": "다음은 에러 검출을 위해 사용하는 CRC(Cyclic Redundancy Check)의 생성다항식이다. 생성다항 식에 대응하는 비트열로 가장 적절한 것은?\n생성다항식 : x16 + x12 + x5 + 1",
+    "question": "다음은 에러 검출을 위해 사용하는 CRC(Cyclic Redundancy Check)의 생성다항식이다. 생성다항식에 대응하는 비트열로 가장 적절한 것은?\n생성다항식 : x<sup>16</sup> + x<sup>12</sup> + x<sup>5</sup> + 1",
     "options": {
       "1": "1000 1000 0001 0001",
       "2": "0111 0111 1110 1110",
@@ -34464,7 +34464,7 @@
     "year_round": "2024년(제25회)",
     "subject": "소프트웨어 공학",
     "number": 30,
-    "question": "다음 코드의 (가)와 (나)에 나타난 객체지향 개념으로 가장 적절한 것은?\nClosedFigure closedFigure; Rectangle r = new Rectangle(); Circle c = new circle(); closedFigure = r; closedFigure.getArea(); ………… (가) closedFigure = c; closedFigure.getArea(); ………… (나)",
+    "question": "다음 코드의 (가)와 (나)에 나타난 객체지향 개념으로 가장 적절한 것은?\nClosedFigure closedFigure;\nRectangle r = new Rectangle();\nCircle c = new circle();\n\nclosedFigure = r;\nclosedFigure.getArea();  …………  (가)\nclosedFigure = c;\nclosedFigure.getArea();  …………  (나)",
     "options": {
       "1": "상속(inheritance)",
       "2": "정보은닉(information hiding)",
@@ -34548,7 +34548,7 @@
     "year_round": "2024년(제25회)",
     "subject": "소프트웨어 공학",
     "number": 33,
-    "question": "다음 C 프로그램의 출력 결과로 가장 적절한 것은?\n#include <stdio.h> int main() { int a, b, c, ary[][4] = {{10, 20, 30, 40}, {50, 60, 70, 80}}; int (*ptr)[4] = ary; a = *(*(ptr + 1) + 3); b = **ptr++; c = **ptr; printf(\"%d\\n\", a+b+c); return 0; }",
+    "question": "다음 C 프로그램의 출력 결과로 가장 적절한 것은?\n#include <stdio.h>\nint main() {\n  int a, b, c, ary[][4] = {{10, 20, 30, 40}, {50, 60, 70, 80}};\n  int (*ptr)[4] = ary;\n  a = *(*(ptr + 1) + 3);\n  b = **ptr++;\n  c = **ptr;\n  printf(\"%d\\n\", a+b+c);\n  return 0;\n}",
     "options": {
       "1": "80",
       "2": "100",
@@ -34996,7 +34996,7 @@
     "year_round": "2024년(제25회)",
     "subject": "소프트웨어 공학",
     "number": 49,
-    "question": "다음 Java 프로그램의 출력 결과로 가장 적절한 것은?\npublic class Test { public final int a = 10; public void runIt() { int a = 20; Runnable b = new Runnable(){ public final int a = 30; public void run(){ int a = 40; System.out.println(this.a); } }; b.run(); } public static void main(String...args) { Test c = new Test(); c.runIt(); } }",
+    "question": "다음 Java 프로그램의 출력 결과로 가장 적절한 것은?\npublic class Test {\n  public final int a = 10;\n  public void runIt() {\n    int a = 20;\n    Runnable b = new Runnable() {\n      public final int a = 30;\n      public void run() {\n        int a = 40;\n        System.out.println(this.a);\n      }\n    };\n    b.run();\n  }\n  public static void main(String... args) {\n    Test c = new Test();\n    c.runIt();\n  }\n}",
     "options": {
       "1": "10",
       "2": "20",
@@ -35838,10 +35838,10 @@
     "number": 79,
     "question": "다음 그림은 전가산기(full adder) 4개를 사용한 4비 트 가산기를 나타낸 것이다. 2의 보수로 표현된 수 들 간의 덧셈에서 상태 비트 제어 회로의 오버플로 우 플래그(V) 논리식으로 가장 적절한 것은?",
     "options": {
-      "1": " ",
-      "2": "⋅",
-      "3": "",
-      "4": "⊕"
+      "1": "C<sub>3</sub> + C<sub>4</sub>",
+      "2": "C<sub>3</sub> · C<sub>4</sub>",
+      "3": "<span class=\"overline\">C<sub>3</sub></span> + <span class=\"overline\">C<sub>4</sub></span>",
+      "4": "C<sub>3</sub> ⊕ C<sub>4</sub>"
     },
     "answer": 4,
     "has_image": true,
@@ -36565,7 +36565,7 @@
     "year_round": "2024년(제25회)",
     "subject": "보안",
     "number": 105,
-    "question": "다음 C언어 코드가 갖는 문제점을 지칭하는 취약 점으로 가장 적절한 것은?\n#include <stdio.h> int main() { char name[100]; printf(\"Enter your name: \"); scanf(\"%99s\", name); printf(name); ... return 0; }",
+    "question": "다음 C언어 코드가 갖는 문제점을 지칭하는 취약점으로 가장 적절한 것은?\n#include <stdio.h>\nint main() {\n  char name[100];\n  printf(\"Enter your name: \");\n  scanf(\"%99s\", name);\n  printf(name);\n  ...\n  return 0;\n}",
     "options": {
       "1": "스택 오버플로우 취약점",
       "2": "경쟁 조건 취약점",
@@ -38275,7 +38275,7 @@
     "year_round": "2025년(제26회)",
     "subject": "소프트웨어 공학",
     "number": 46,
-    "question": "다음 코드에서 left=22이고 right=21일 때, 문장 커버리지로 가장 적절한 것은? (단, 각 라인에 번호가 부여 된 것을 문장으로 간주한다.) public int play(int left, int right) { 1 int ln = left; 2 int rn = right; 3 if (ln > 21) 4 ln = 0; 5 if (rn > 21) 6 rn = 0; 7 if (ln > rn) 8 return ln; 9 else 10 return rn; }",
+    "question": "다음 코드에서 left=22이고 right=21일 때, 문장 커버리지로 가장 적절한 것은? (단, 각 라인에 번호가 부여된 것을 문장으로 간주한다.)\n    public int play(int left, int right) {\n 1    int ln = left;\n 2    int rn = right;\n 3    if (ln > 21)\n 4      ln = 0;\n 5    if (rn > 21)\n 6      rn = 0;\n 7    if (ln > rn)\n 8      return ln;\n 9    else\n10      return rn;\n    }",
     "options": {
       "1": "60%",
       "2": "70%",
@@ -38613,12 +38613,12 @@
     "year_round": "2025년(제26회)",
     "subject": "데이터베이스",
     "number": 58,
-    "question": "세 릴레이션 직원 E(ENO, Name), 프로젝트 P(PNO, DNO), 참가 W(ENO, PNO, Hour)에 대해 표현한 다음 SQL문에 대한 설명으로 옳지 않은 것은?\nSELECT ENO FROM E WHERE NOT EXISTS ((SELECT PNO FROM P WHERE DNO=1) EXCEPT (SELECT PNO FROM W WHERE E.ENO=ENO));",
+    "question": "세 릴레이션 직원 E(ENO, Name), 프로젝트 P(PNO, DNO), 참가 W(ENO, PNO, Hour)에 대해 표현한 다음 SQL문에 대한 설명으로 옳지 않은 것은?\nSELECT ENO\nFROM E\nWHERE NOT EXISTS ((SELECT PNO\n                   FROM P\n                   WHERE DNO=1)\n                  EXCEPT\n                  (SELECT PNO\n                   FROM W\n                   WHERE E.ENO=ENO));",
     "options": {
       "1": "1번 부서(DNO=1)가 수행하는 프로젝트에 참가하지 않은 직원의 번호(ENO)를 검색하는 질의이다.",
       "2": "1번 부서(DNO=1)가 수행하는 모든 프로젝트에 참가한 직원의 번호(ENO)를 검색하는 질의이다.",
       "3": "두 번째 부속질의는 상관(correlated) 질의로 현재 고려 중인 특정 직원(E)이 참가한 모든 프로젝트를 선택한다.",
-      "4": "관계 대수 (∏ENO, PNO(W)) ÷ (∏PNO(σDNO=1(P)))를 이용하면 동일한 결과를 얻을 수 있다."
+      "4": "관계대수 (∏<sub>ENO, PNO</sub>(W)) ÷ (∏<sub>PNO</sub>(σ<sub>DNO=1</sub>(P)))를 이용하면 동일한 결과를 얻을 수 있다."
     },
     "answer": 1,
     "has_image": false,
@@ -41220,7 +41220,7 @@
     "year_round": "2026년(제27회)",
     "subject": "소프트웨어 공학",
     "number": 31,
-    "question": "다음 UML State Machine 다이어그램에 대해, 초기상태에서 E1 이벤트와 E2 이벤트가 연달아 발생하여 최종적으로 전이된 상태에서의  값으로 올바른 것은?",
+    "question": "다음 UML State Machine 다이어그램에 대해, 초기상태에서 E1 이벤트와 E2 이벤트가 연달아 발생하여 최종적으로 전이된 상태에서의 x 값으로 올바른 것은?",
     "options": {
       "1": "3",
       "2": "5",
@@ -42173,7 +42173,7 @@
     "year_round": "2026년(제27회)",
     "subject": "데이터베이스",
     "number": 65,
-    "question": "Emp 테이블에 deptno=10인 직원이 5명, deptno=20인 직원이 3명 존재할 경우에, 다음 SQL 표준 트리거 (trigger) 정의문에서 실제로 트리거 액션이 실행되는 행(row)의 수는?\nCREATE TRIGGER trg_sal_audit AFTER UPDATE OF sal ON Emp REFERENCING OLD ROW AS O, NEW ROW AS N FOR EACH ROW WHEN (N.sal > O.sal AND N.deptno = 10) INSERT INTO sal_audit VALUES (N.empno, O.sal, N.sal, CURRENT_TIMESTAMP); UPDATE Emp SET sal = sal * 1.1 WHERE deptno IN (10, 20);",
+    "question": "Emp 테이블에 deptno=10인 직원이 5명, deptno=20인 직원이 3명 존재할 경우에, 다음 SQL 표준 트리거(trigger) 정의문에서 실제로 트리거 액션이 실행되는 행(row)의 수는?\nCREATE TRIGGER trg_sal_audit\nAFTER UPDATE OF sal ON Emp\nREFERENCING OLD ROW AS O, NEW ROW AS N\nFOR EACH ROW\nWHEN (N.sal > O.sal AND N.deptno = 10)\nINSERT INTO sal_audit\nVALUES (N.empno, O.sal, N.sal, CURRENT_TIMESTAMP);\n\nUPDATE Emp\nSET sal = sal * 1.1\nWHERE deptno IN (10, 20);",
     "options": {
       "1": "8건",
       "2": "5건",
@@ -42287,10 +42287,10 @@
     "number": 69,
     "question": "두 개의 릴레이션 R(A, B, C, D)과 S(D, E, F)에 대한 다음 관계 대수식 보기 중에서 동등하지 않은 관계 대수식은?",
     "options": {
-      "1": "σA=3 AND F=9 (R ⋈R.D=S.D S)",
-      "2": "σA=3 OR F=9 (R ⋈R.D=S.D S)",
-      "3": "(σA=3 R) ⋈R.D=S.D (σF=9 S)",
-      "4": "σA=3 (σF=9 (R ⋈R.D=S.D S))"
+      "1": "σ<sub>A=3 AND F=9</sub>(R ⋈<sub>R.D=S.D</sub> S)",
+      "2": "σ<sub>A=3 OR F=9</sub>(R ⋈<sub>R.D=S.D</sub> S)",
+      "3": "(σ<sub>A=3</sub> R) ⋈<sub>R.D=S.D</sub> (σ<sub>F=9</sub> S)",
+      "4": "σ<sub>A=3</sub>(σ<sub>F=9</sub>(R ⋈<sub>R.D=S.D</sub> S))"
     },
     "answer": 2,
     "has_image": false,
@@ -43126,12 +43126,12 @@
     "year_round": "2026년(제27회)",
     "subject": "시스템 구조",
     "number": 99,
-    "question": " ′ ′의 논리식을 간략화하였을 때, 가장 적절한 논리식은?",
+    "question": "Y = A + AB′ + A′B의 논리식을 간략화하였을 때, 가장 적절한 논리식은?",
     "options": {
-      "1": " ′",
-      "2": " ",
-      "3": " ′ ",
-      "4": " "
+      "1": "Y = AB′",
+      "2": "Y = AB",
+      "3": "Y = A′ + B",
+      "4": "Y = A + B"
     },
     "answer": 4,
     "has_image": false,
@@ -43378,7 +43378,7 @@
     "year_round": "2026년(제27회)",
     "subject": "보안",
     "number": 108,
-    "question": "소스코드 취약점 유형 중에서 다음과 같은 Java 코드에 존재하는 취약점으로 가장 적절한 것은?\nString price = request.getRawParameter(\"price\"); int p = Integer.parseInt(price); total = total + p;",
+    "question": "소스코드 취약점 유형 중에서 다음과 같은 Java 코드에 존재하는 취약점으로 가장 적절한 것은?\nString price = request.getRawParameter(\"price\");\nint p = Integer.parseInt(price);\ntotal = total + p;",
     "options": {
       "1": "SQL Injection 여부",
       "2": "입력값 검증 및 범위 체크",

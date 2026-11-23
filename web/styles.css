@@ -578,7 +578,7 @@ button {
 }
 
 .question-body {
-  white-space: pre-line;
+  white-space: pre-wrap;
   font-size: 15px;
   line-height: 1.65;
   color: var(--text-primary);
@@ -615,6 +615,28 @@ button {
   background: var(--q-bold-bg);
   padding: 1px 4px;
   border-radius: 4px;
+}
+
+.q-sup,
+.q-sub {
+  font-size: 0.76em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+  font-weight: 600;
+}
+
+.q-sup {
+  top: -0.48em;
+}
+
+.q-sub {
+  bottom: -0.26em;
+}
+
+.q-overline {
+  text-decoration: overline;
+  text-decoration-thickness: 1.5px;
 }
 
 /* Question Cropped Image */
@@ -738,6 +760,7 @@ button {
 .option-text {
   flex: 1;
   line-height: 1.5;
+  white-space: pre-wrap;
   word-break: break-word;
 }
 
