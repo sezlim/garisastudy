@@ -577,6 +577,15 @@ button {
   font-size: 11.5px;
 }
 
+.retry-mode-pill {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--status-ok-bg);
+  color: var(--status-ok);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
 .question-body {
   white-space: pre-wrap;
   font-size: 15px;

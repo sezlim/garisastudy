@@ -87,6 +87,7 @@ create policy "Allow anon read/write" on public.study_sync
   let randomOrderMap = {};
   let perQuestionOriginalColor = {};
   let peekedQuestions = {};
+  let retryAnsweredInSession = {};
   let navigatorOpen = false;
   let stealthActive = false;
   let lightboxQid = null;
@@ -457,6 +458,15 @@ create policy "Allow anon read/write" on public.study_sync
       default:
         return true;
     }
+  }
+
+  function isRetryFilter(filterKey = state.filter) {
+    return filterKey === "wrong" || filterKey === "uncertain" || filterKey === "review";
+  }
+
+  function resetRetrySession() {
+    retryAnsweredInSession = {};
+    peekedQuestions = {};
   }
 
   function buildQueueForTopic(topic, keepCurrentQid = null) {
@@ -1429,7 +1439,10 @@ create policy "Allow anon read/write" on public.study_sync
     const rec = state.records[q.id] || null;
     const effAnsList = getEffectiveAnswers(q);
     const effAnsLabel = formatAnswersLabel(effAnsList);
-    const isAnswered = Boolean(rec && rec.selected != null);
+    const isRetryMode = isRetryFilter(state.filter);
+    const isAnswered = isRetryMode
+      ? Boolean(retryAnsweredInSession[q.id])
+      : Boolean(rec && rec.selected != null);
     const isPeeked = Boolean(peekedQuestions[q.id]);
     const revealAnswer = isAnswered || Boolean(state.alwaysShowAnswer) || isPeeked;
     const hasImg = Boolean(q.has_image && q.image_path);
@@ -1459,8 +1472,11 @@ create policy "Allow anon read/write" on public.study_sync
       ? currentQueue
           .map((item, idx) => {
             const r = state.records[item.id];
+            const showCellStatus = isRetryMode
+              ? Boolean(retryAnsweredInSession[item.id])
+              : Boolean(r && r.selected != null);
             let cls = "";
-            if (r && r.selected != null) {
+            if (showCellStatus && r && r.selected != null) {
               if (r.result === "correct") cls = "st-correct";
               else if (r.result === "wrong") cls = "st-wrong";
               else if (r.uncertain) cls = "st-uncertain";
@@ -1507,7 +1523,7 @@ create policy "Allow anon read/write" on public.study_sync
 
     const optionsHtml = [1, 2, 3, 4]
       .map((n) => {
-        const selected = rec && rec.selected === n;
+        const selected = isAnswered && Boolean(rec && rec.selected === n);
         const isCorrectOpt = effAnsList.includes(n);
         let stateCls = selected ? "selected" : "";
         let badgeHtml = "";
@@ -1551,13 +1567,24 @@ create policy "Allow anon read/write" on public.study_sync
 
     const aiResponseHtml = isAnswered ? renderAiResponseBlock(subj, topic, q, rec) : "";
 
+    const retryPillLabel =
+      state.filter === "wrong"
+        ? "오답 재풀이"
+        : state.filter === "uncertain"
+        ? "불확실 재풀이"
+        : "복습 재풀이";
+    const retryPillHtml =
+      isRetryMode && !isAnswered
+        ? `<span class="retry-mode-pill" title="이전 선택과 정답을 가린 상태로 다시 풉니다">${retryPillLabel}</span>`
+        : "";
+
     const peekBtnHtml =
       !isAnswered && !state.alwaysShowAnswer && effAnsList.length > 0
         ? `<button id="peekAnswerBtn" class="peek-ans-btn ${isPeeked ? "active" : ""}" type="button" title="정답 미리 보기 (A)">${isPeeked ? `정답 ${escapeHtml(effAnsLabel)}` : "정답 보기"}</button>`
         : "";
 
     const resetQBtnHtml = isAnswered
-      ? `<button id="resetSingleQBtn" class="reset-q-btn" type="button" title="이 문제 풀이 기록 지우기">다시 풀기</button>`
+      ? `<button id="resetSingleQBtn" class="reset-q-btn" type="button" title="${isRetryMode ? "정답과 선택을 가리고 다시 풀기" : "이 문제 풀이 기록 지우기"}">다시 풀기</button>`
       : "";
 
     el.streamInner.innerHTML = `
@@ -1589,6 +1616,7 @@ create policy "Allow anon read/write" on public.study_sync
             <span>${escapeHtml(q.topic_code)}</span>
           </span>
           <div class="question-meta-actions">
+            ${retryPillHtml}
             ${rec && rec.uncertain ? `<span class="question-flag-pill">불확실</span>` : ""}
             ${peekBtnHtml}
             ${resetQBtnHtml}
@@ -1635,6 +1663,7 @@ create policy "Allow anon read/write" on public.study_sync
     activeViewMode = resolveInitialViewMode(firstTopic);
     currentIndex = 0;
     navigatorOpen = false;
+    resetRetrySession();
     saveState();
     renderAll({ rebuildQueue: true });
     el.chatStream.scrollTop = 0;
@@ -1649,6 +1678,7 @@ create policy "Allow anon read/write" on public.study_sync
     activeViewMode = resolveInitialViewMode(topic, { forceSession: Boolean(targetQid) });
     currentIndex = 0;
     navigatorOpen = false;
+    resetRetrySession();
     saveState();
     renderAll({ rebuildQueue: true, keepCurrentQid: targetQid });
     el.chatStream.scrollTop = 0;
@@ -1704,6 +1734,7 @@ create policy "Allow anon read/write" on public.study_sync
     state.activeTopicCode = lp.topicCode;
     state.filter = "all";
     activeViewMode = "session";
+    resetRetrySession();
     saveState();
     renderAll({ rebuildQueue: true, keepCurrentQid: lp.questionId || null });
     el.chatStream.scrollTop = 0;
@@ -1813,8 +1844,12 @@ create policy "Allow anon read/write" on public.study_sync
       state.filter = "review";
       activeViewMode = "session";
       currentIndex = 0;
+      resetRetrySession();
       saveState();
       renderAll({ rebuildQueue: true });
+      if (currentQueue.length > 0) {
+        showToast("복습 재풀이 모드 · 이전 선택과 정답을 가렸습니다");
+      }
       if (isMobileViewport()) setMobileSidebarOpen(false);
     });
 
@@ -1855,14 +1890,19 @@ create policy "Allow anon read/write" on public.study_sync
         state.filter = filterBtn.dataset.filter;
         activeViewMode = "session";
         currentIndex = 0;
+        resetRetrySession();
         saveState();
         el.filterMenu.classList.add("hidden");
         renderAll({ rebuildQueue: true });
+        if (isRetryFilter(state.filter) && currentQueue.length > 0) {
+          showToast(`${FILTER_LABELS[state.filter].replace(" (1·3·7일)", "")} 재풀이 모드 · 이전 선택과 정답을 가렸습니다`);
+        }
       } else if (sortBtn) {
         state.sort = sortBtn.dataset.sort;
         activeViewMode = "session";
         currentIndex = 0;
         randomSeedKey = "";
+        resetRetrySession();
         saveState();
         el.filterMenu.classList.add("hidden");
         renderAll({ rebuildQueue: true });
@@ -1887,6 +1927,7 @@ create policy "Allow anon read/write" on public.study_sync
       if (e.target.closest("#resetFilterEmptyBtn")) {
         state.filter = "all";
         currentIndex = 0;
+        resetRetrySession();
         saveState();
         renderAll({ rebuildQueue: true });
         return;
@@ -1919,8 +1960,15 @@ create policy "Allow anon read/write" on public.study_sync
         return;
       }
 
-      // Reset single question record
+      // Reset single question record (or hide answer again in retry mode)
       if (e.target.closest("#resetSingleQBtn") && q) {
+        if (isRetryFilter(state.filter)) {
+          delete retryAnsweredInSession[q.id];
+          delete peekedQuestions[q.id];
+          renderMainStream();
+          showToast("정답과 선택을 가리고 다시 풀기 상태로 전환했습니다");
+          return;
+        }
         delete state.records[q.id];
         delete peekedQuestions[q.id];
         saveState();
@@ -1950,6 +1998,9 @@ create policy "Allow anon read/write" on public.study_sync
       const optBtn = e.target.closest("[data-option]");
       if (optBtn && q) {
         const chosen = Number(optBtn.dataset.option);
+        if (isRetryFilter(state.filter)) {
+          retryAnsweredInSession[q.id] = true;
+        }
         applyRecordUpdate(q, { selected: chosen });
         renderUserProfileBar();
         renderSubjectTabs();
@@ -2445,6 +2496,7 @@ create policy "Allow anon read/write" on public.study_sync
         }
         if (typeof src.gemUrl === "string") state.gemUrl = src.gemUrl;
         saveState();
+        resetRetrySession();
         renderAll({ rebuildQueue: true });
         openSettings();
         showToast("학습기록을 성공적으로 불러왔습니다");
@@ -2511,6 +2563,7 @@ create policy "Allow anon read/write" on public.study_sync
         topic.gamrisa_questions.forEach((q) => {
           delete state.records[q.id];
           delete peekedQuestions[q.id];
+          delete retryAnsweredInSession[q.id];
         });
         delete state.topicLastQid[topic.topic_code];
         if (state.lastPosition?.topicCode === topic.topic_code) {
@@ -2534,6 +2587,7 @@ create policy "Allow anon read/write" on public.study_sync
           t.gamrisa_questions.forEach((q) => {
             delete state.records[q.id];
             delete peekedQuestions[q.id];
+            delete retryAnsweredInSession[q.id];
           });
           delete state.topicLastQid[t.topic_code];
         });
@@ -2563,7 +2617,7 @@ create policy "Allow anon read/write" on public.study_sync
       state.trendChecked = {};
       state.lastPosition = null;
       state.topicLastQid = {};
-      peekedQuestions = {};
+      resetRetrySession();
       currentIndex = 0;
       saveState();
       renderAll({ rebuildQueue: true });
@@ -2637,6 +2691,9 @@ create policy "Allow anon read/write" on public.study_sync
         const q = currentQueue[currentIndex];
         if (q) {
           e.preventDefault();
+          if (isRetryFilter(state.filter)) {
+            retryAnsweredInSession[q.id] = true;
+          }
           applyRecordUpdate(q, { selected: Number(e.key) });
           renderUserProfileBar();
           renderSubjectTabs();
@@ -2719,7 +2776,7 @@ create policy "Allow anon read/write" on public.study_sync
     window.StudyDB.setSavedSession(username, remember);
     const loaded = await window.StudyDB.loadUserState(username);
     state = normalizeState(loaded);
-    peekedQuestions = {};
+    resetRetrySession();
     navigatorOpen = false;
     el.authOverlay.classList.add("hidden");
 
